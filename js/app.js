@@ -1,5 +1,5 @@
-/* Petit Piano — routeur d'écrans et écrans hors leçon (E1, E2, E2b, E3, E5, E6).
- * Le moteur de leçon (E4) est dans js/lesson.js.
+/* Petit Piano — routeur d'écrans et écrans hors leçon (E1, E2, E2b, E3, E5, E6, E7).
+ * Le moteur de leçon (E4) est dans js/lesson.js ; la synchro entre téléphones dans js/sync.js.
  */
 (function (root) {
   'use strict';
@@ -151,12 +151,27 @@
 
   // ================= E1 — Bienvenue =================
 
-  function showWelcome() {
+  var addingChild = false;    // E1 ouvert depuis « + Ajouter un enfant »
+
+  function showWelcome(opts) {
+    addingChild = !!(opts && opts.adding);
     show('welcome');
     var input = $('welcome-name');
     input.value = '';
     $('welcome-go').disabled = true;
-    setTimeout(function () { input.focus(); }, 50);
+    document.querySelector('#screen-welcome .big-label').textContent = t(addingChild ? 'welcome.newChild' : 'welcome.hello');
+    $('welcome-back').hidden = !addingChild;
+    // « J'ai déjà un code » : seulement si ce téléphone n'est pas déjà dans une famille
+    $('welcome-code').hidden = addingChild || !!store.syncState().familyCode;
+    if (!addingChild) setTimeout(function () { input.focus(); }, 50);
+  }
+
+  /** Après le choix d'un profil : réglage du micro si le téléphone n'est pas calibré, sinon la carte. */
+  function afterProfileChosen() {
+    document.body.dataset.mode = profile().mode;
+    var dev = store.device();
+    if (dev.input === 'mic' && !dev.calibrated) showMicSetup();
+    else showMap();
   }
 
   function initWelcome() {
@@ -169,9 +184,39 @@
       e.preventDefault();
       var name = $('welcome-name').value.trim();
       if (!name) return;
+      var wasAdding = addingChild;
       store.createProfile(name);
-      document.body.dataset.mode = profile().mode;
-      showMicSetup();
+      addingChild = false;
+      if (wasAdding) afterProfileChosen();
+      else { document.body.dataset.mode = profile().mode; showMicSetup(); }
+    });
+    $('welcome-back').addEventListener('click', function () { addingChild = false; showParents(); });
+    $('welcome-code').addEventListener('click', function () { openJoinModal('welcome'); });
+  }
+
+  // ================= E7 — Qui joue ? =================
+
+  function showWho() {
+    show('who');
+    renderWho();
+  }
+
+  function renderWho() {
+    var grid = $('who-grid');
+    grid.innerHTML = '';
+    var active = store.profile();
+    store.profileList().forEach(function (p) {
+      var stars = Object.keys(p.progress || {}).reduce(function (n, k) { return n + (p.progress[k].stars || 0); }, 0);
+      var b = document.createElement('button');
+      b.className = 'who-tile' + (active && active.id === p.id ? ' last' : '');
+      b.innerHTML = '<span class="who-avatar">' + escape(p.avatar || '🦊') + '</span>' +
+        '<span class="who-name">' + escape(p.name) + '</span>' +
+        '<span class="who-stars">⭐ ' + stars + '</span>';
+      b.addEventListener('click', function () {
+        store.setActive(p.id);
+        afterProfileChosen();
+      });
+      grid.appendChild(b);
     });
   }
 
@@ -350,13 +395,19 @@
   // ================= E3 — Carte =================
 
   function showMap() {
+    if (!profile()) { if (Object.keys(store.profiles()).length) showWho(); else showWelcome(); return; }
     show('map');
+    renderMapHeader();
+    renderMapPath();
+  }
+
+  function renderMapHeader() {
     var p = profile();
     $('map-hello').textContent = t('map.hello', { prenom: p.name });
+    $('map-hello').classList.toggle('tappable', store.profileList().length > 1);
     $('map-stars').textContent = '⭐ ' + store.totalStars();
     var days = store.streakDays();
     $('map-streak').textContent = days ? '🔥 ' + t(days > 1 ? 'map.days' : 'map.day', { n: days }) : '';
-    renderMapPath();
   }
 
   /** Indice de la leçon « courante » : première ouverte sans étoile (ou -1 si tout est fini). */
@@ -376,7 +427,8 @@
     return s;
   }
 
-  function renderMapPath() {
+  /** silent : re-rendu après une synchro (pas de défilement automatique, position gardée). */
+  function renderMapPath(silent) {
     var lessons = curriculum().lessons;
     var path = $('map-path');
     path.querySelectorAll('.node').forEach(function (n) { n.remove(); });
@@ -443,7 +495,7 @@
       play.addEventListener('click', function () { startLesson(cur); });
       footer.appendChild(play);
       var nodeEl = path.querySelectorAll('.node')[cur];
-      setTimeout(function () { nodeEl.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 80);
+      if (!silent) setTimeout(function () { nodeEl.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 80);
     } else {
       footer.innerHTML = '<span class="footer-title">' + escape(t('map.allDone')) + '</span>';
     }
@@ -637,6 +689,202 @@
     $('parents-voice').checked = !!p.settings.voiceAuto;
     $('parents-unlock').checked = !!p.settings.unlockAll;
     syncParentsVoice();
+    renderSyncSection();
+  }
+
+  // ================= E6 — « Plusieurs téléphones » (DESIGN §9.2) =================
+
+  var syncMsg = '';   // message d'erreur de la section (création hors ligne…)
+
+  /** Statut court : « Synchronisé il y a 2 min », « Hors ligne… ». */
+  function syncStatusText() {
+    var st = PP.sync.status();
+    if (st.state === 'syncing') return t('sync.statusSyncing');
+    if (st.state === 'offline') return t('sync.statusOffline');
+    if (st.state === 'error') return t('sync.statusError');
+    if (st.state === 'tooNew') return t('sync.statusTooNew');
+    if (!st.lastSyncAt) return t('sync.statusSyncing');
+    var min = Math.floor((Date.now() - st.lastSyncAt) / 60000);
+    if (min < 1) return t('sync.statusNow');
+    if (min < 60) return t('sync.statusMin', { n: min });
+    if (min < 24 * 60) return t('sync.statusHour', { n: Math.floor(min / 60) });
+    var d = new Date(st.lastSyncAt);
+    return t('sync.statusDay', { date: String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') });
+  }
+
+  function renderSyncSection() {
+    var box = $('parents-sync');
+    var code = store.syncState().familyCode;
+    var html = '<h3>' + escape(t('sync.title')) + '</h3>';
+    if (!code) {
+      html += '<p class="muted">' + escape(t('sync.intro')) + '</p>' +
+        '<div class="row"><button id="sync-create" class="btn secondary">' + escape(t('sync.create')) + '</button>' +
+        '<button id="sync-join" class="btn secondary">' + escape(t('sync.join')) + '</button></div>' +
+        '<p id="sync-msg" class="muted" aria-live="polite">' + escape(syncMsg) + '</p>';
+      box.innerHTML = html;
+      $('sync-create').addEventListener('click', createFamily);
+      $('sync-join').addEventListener('click', function () { syncMsg = ''; openJoinModal('parents'); });
+      return;
+    }
+    html += '<span>' + escape(t('sync.codeLabel')) + '</span>' +
+      '<div class="sync-code">' + escape(code) + '</div>' +
+      '<div class="row"><button id="sync-share" class="btn primary">' + escape(t('sync.share')) + '</button></div>' +
+      '<p class="muted">' + escape(t('sync.howTo')) + '</p>' +
+      '<p class="muted">' + escape(t('sync.keep')) + '</p>' +
+      '<p id="sync-status" class="muted sync-status" aria-live="polite">' + escape(syncStatusText()) + '</p>' +
+      '<div class="row"><button id="sync-leave" class="btn link">' + escape(t('sync.leave')) + '</button></div>';
+    box.innerHTML = html;
+    $('sync-share').addEventListener('click', function () { shareCode(code); });
+    $('sync-leave').addEventListener('click', function () {
+      PP.ui.confirm(t('sync.leaveConfirm'), t('sync.leaveYes'), t('parents.cancel')).then(function (yes) {
+        if (!yes) return;
+        // les dernières leçons partent d'abord vers les autres téléphones (réussite ou non, on quitte ensuite)
+        syncBefore($('sync-leave')).then(function () {
+          PP.sync.leave();
+          renderSyncSection();
+        });
+      });
+    });
+  }
+
+  /** Synchronise tout de suite (bouton « Je vérifie… » pendant ce temps, 10 s max). Résout l'état final. */
+  function syncBefore(btn) {
+    var label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = t('sync.checking');
+    return PP.sync.run().then(function (st) {
+      btn.disabled = false;
+      btn.textContent = label;
+      return st;
+    });
+  }
+
+  function syncErrorText(err) {
+    var k = err && err.kind;
+    return t(k === 'offline' ? 'sync.errOffline' : k === 'notFound' ? 'sync.errNotFound' : k === 'format' ? 'sync.errFormat' :
+      k === 'chars' ? 'sync.errChars' : k === 'tooNew' ? 'sync.statusTooNew' : 'sync.errOther');
+  }
+
+  function createFamily() {
+    var btn = $('sync-create');
+    btn.disabled = true;
+    btn.textContent = t('sync.creating');
+    $('sync-join').disabled = true;
+    syncMsg = '';
+    PP.sync.create().then(function () {
+      if (current === 'parents') renderSyncSection();
+    }, function (err) {
+      syncMsg = syncErrorText(err);
+      if (current === 'parents') renderSyncSection();
+    });
+  }
+
+  /** Partager : feuille de partage (iPhone), sinon presse-papiers ; le code reste sélectionnable. */
+  function shareCode(code) {
+    var text = t('sync.shareText', { code: code });
+    var url = root.location.origin + root.location.pathname;
+    if (navigator.share) {
+      navigator.share({ title: t('sync.shareTitle'), text: text, url: url }).catch(function (e) {
+        if (e && e.name === 'AbortError') return;          // annulé par le parent : rien à dire
+        copyCode(text);
+      });
+    } else {
+      copyCode(text);
+    }
+  }
+
+  function copyCode(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { PP.ui.toast(t('sync.copied')); }, function () {});
+    }
+  }
+
+  /** Modale « Entre le code famille » (depuis E1 ou le coin des parents). Reste ouverte en cas d'erreur. */
+  function openJoinModal(from) {
+    $('modal-body').innerHTML =
+      '<form id="join-form" autocomplete="off">' +
+        '<label for="join-code" class="lead">' + escape(t('sync.joinTitle')) + '</label>' +
+        '<input id="join-code" class="name-input code-input" type="text" value="PIANO-" inputmode="text" ' +
+          'autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" maxlength="400">' +
+        '<p id="join-error" class="muted join-error" aria-live="polite"></p>' +
+      '</form>';
+    var actions = $('modal-actions');
+    actions.innerHTML = '';
+    var cancel = document.createElement('button');
+    cancel.className = 'btn big secondary';
+    cancel.textContent = t('parents.cancel');
+    var go = document.createElement('button');
+    go.className = 'btn big primary';
+    go.textContent = t('sync.joinGo');
+    actions.appendChild(cancel);
+    actions.appendChild(go);
+    $('modal').hidden = false;
+    var input = $('join-code');
+    setTimeout(function () { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }, 50);
+
+    var busy = false;
+    function close() { $('modal').hidden = true; }
+    cancel.addEventListener('click', function () { if (!busy) close(); });
+    function submit(e) {
+      if (e) e.preventDefault();
+      if (busy) return;
+      var norm = PP.syncLib.normalizeCode(input.value);
+      if (!norm.ok) { $('join-error').textContent = syncErrorText({ kind: norm.error }); return; }
+      busy = true;
+      go.disabled = true;
+      go.textContent = t('sync.checking');
+      $('join-error').textContent = '';
+      PP.sync.join(norm.code).then(function () {
+        busy = false;
+        close();
+        onJoined(from);
+      }, function (err) {
+        busy = false;
+        go.disabled = false;
+        go.textContent = t('sync.joinGo');
+        $('join-error').textContent = syncErrorText(err);
+      });
+    }
+    go.addEventListener('click', submit);
+    $('join-form').addEventListener('submit', submit);
+  }
+
+  function onJoined(from) {
+    if (from === 'parents') {
+      PP.ui.toast(t('sync.joined'));
+      if (current === 'parents') showParents();
+      return;
+    }
+    // depuis l'écran de bienvenue (§9.3)
+    var list = store.profileList();
+    if (!list.length) { $('welcome-code').hidden = true; return; }      // famille vide : on crée le prénom ici
+    if (list.length === 1) {
+      store.setActive(list[0].id);
+      PP.ui.toast(t('who.found', { prenom: list[0].name, avatar: list[0].avatar || '' }), 3000);
+      afterProfileChosen();
+      return;
+    }
+    showWho();
+  }
+
+  /** Une synchro a changé les données ou le statut : mise à jour silencieuse de l'écran affiché. */
+  function onSyncEvent(ev) {
+    if (current === 'parents') {
+      if (ev.type === 'status' && $('sync-status')) $('sync-status').textContent = syncStatusText();
+      else if (ev.type === 'status' && !store.syncState().familyCode) renderSyncSection();
+      return;
+    }
+    if (ev.type !== 'data') return;
+    if (current === 'map') {
+      if (!profile()) { showWho(); return; }
+      var sc = $('map-scroll'), top = sc.scrollTop;
+      renderMapHeader();
+      renderMapPath(true);
+      sc.scrollTop = top;
+    } else if (current === 'who') {
+      renderWho();
+    }
+    // leçon, bravo, micro : rien ; le prochain showMap() affichera l'état fusionné
   }
 
   function initParents() {
@@ -646,7 +894,7 @@
       var name = $('parents-name').value.trim();
       if (!name) return;
       profile().name = name;
-      store.save();
+      store.touchProfile();
       PP.ui.toast('✓');
     });
     $('parents-mic').addEventListener('click', function () {
@@ -662,19 +910,28 @@
     $('parents-redo-mic').addEventListener('click', showMicSetup);
     $('parents-voice').addEventListener('change', function () {
       profile().settings.voiceAuto = this.checked;
-      store.save();
+      store.touchProfile();
     });
     $('parents-unlock').addEventListener('change', function () {
       profile().settings.unlockAll = this.checked;
-      store.save();
+      store.touchProfile();
     });
+    $('parents-add-child').addEventListener('click', function () { showWelcome({ adding: true }); });
     $('parents-reset').addEventListener('click', function () {
-      PP.ui.modal('<p class="lead">' + escape(t('parents.resetConfirm')) + '</p>', [
-        { label: t('parents.cancel'), cls: 'secondary', value: false },
-        { label: t('parents.resetYes'), cls: 'danger', value: true }
-      ]).then(function (yes) {
+      var btn = this;
+      var inFamily = !!store.syncState().familyCode;
+      // En famille : on envoie d'abord les dernières leçons ; « la progression reste ailleurs » seulement si c'est fait.
+      (inFamily ? syncBefore(btn) : Promise.resolve('none')).then(function (st) {
+        var key = !inFamily ? 'parents.resetConfirm' : st === 'ok' ? 'sync.resetConfirmFamily' : 'sync.resetConfirmUnsynced';
+        return PP.ui.modal('<p class="lead">' + escape(t(key)) + '</p>', [
+          { label: t('parents.cancel'), cls: 'secondary', value: false },
+          { label: t('parents.resetYes'), cls: 'danger', value: true }
+        ]);
+      }).then(function (yes) {
         if (!yes) return;
         PP.mic.stop();
+        if (inFamily) PP.sync.leave();   // sinon la fusion suivante ferait tout revenir
+        syncMsg = '';
         store.reset();
         showWelcome();
       });
@@ -690,6 +947,8 @@
 
     store.load();
     initWelcome(); initMic(); initGear(); initLesson(); initParents();
+    $('map-hello').addEventListener('click', function () { if (store.profileList().length > 1) showWho(); });
+    PP.sync.onChange(onSyncEvent);
 
     var resizeT;
     root.addEventListener('resize', function () {
@@ -698,7 +957,10 @@
     });
 
     PP.mic.setTuning(store.device().tuningCents);
+    PP.sync.start();   // stockage persistant + 1re synchro après l'affichage (jamais bloquant)
     var p = profile();
+    var count = store.profileList().length;
+    if (count > 1 || (!p && count)) { showWho(); return; }   // plusieurs enfants : « Qui joue ? » (§9.4)
     if (!p) { showWelcome(); return; }
     document.body.dataset.mode = p.mode;
     showMap();       // le micro sera demandé au 1er tap sur une leçon (geste obligatoire)

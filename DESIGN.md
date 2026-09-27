@@ -727,6 +727,394 @@ Ce qui est en place dès la v1 :
 
 ---
 
+## 9. Synchronisation entre téléphones (v2)
+
+> Objectif : Léo peut faire ses leçons sur le téléphone de papa **ou** de maman, et retrouve partout ses étoiles, sa série 🔥 et ses leçons ouvertes. Plus tard, sa sœur aura son profil, partagé de la même façon.
+> **Exigence n°1 du parent : ne jamais perdre ni faire reculer la progression d'un enfant.** Toute la conception en découle : fusion monotone (§9.6), écriture locale d'abord, jamais d'effacement distant.
+
+### 9.0 Principes
+
+1. **Hors ligne d'abord.** L'appli marche exactement comme en v1 sans réseau. La synchro est un bonus en arrière-plan : elle ne bloque jamais un écran, n'affiche jamais rien à l'enfant (ni toast, ni sablier, ni erreur).
+2. **Un « code famille » = un document partagé.** Pas de compte, pas de mot de passe, pas d'e-mail. Qui a le code peut lire et écrire la progression de la famille → on le partage seulement entre parents.
+3. **Fusion, jamais remplacement.** On lit le document distant, on fusionne avec le local (règles §9.6), on enregistre le résultat **en local d'abord**, puis on l'écrit à distance. Aucune donnée n'est jamais retirée par la synchro.
+4. **Seuls les profils voyagent.** `device` (micro, `noiseFloor`, `tuningCents`, `input`, `calibrated`), `activeProfile` et l'état de synchro restent propres à chaque téléphone.
+5. **Invisible pour l'enfant.** Tout ce qui concerne la synchro vit dans le coin des parents, sauf deux choses : le lien « J'ai déjà un code » sur l'écran de bienvenue (utilisé par un adulte) et l'écran « Qui joue ? » quand il y a plusieurs enfants.
+
+### 9.1 Parcours
+
+```
+ Téléphone de papa (Léo y a déjà sa progression)          Téléphone de maman (neuf)
+ ───────────────────────────────────────────────          ─────────────────────────
+ ⚙ appui long › Coin des parents                           Ouvre Petit Piano
+   › « Plusieurs téléphones »                              [Bienvenue] › « J'ai déjà un code famille › »
+   › [ Créer un code famille ]                               › saisit / colle le code › [ Rejoindre ]
+   › affiche PIANO-7KQ3M-XH9PT-R4WZC  [ Partager ]           › « Retrouvé : Léo 🦊 ! »
+   › Messages / AirDrop vers maman  ───────────────────►     › (1 profil) Réglage du micro › Carte de Léo
+                                                             › (≥ 2 profils) [Qui joue ?] › micro › Carte
+ Ensuite : chaque téléphone se synchronise tout seul
+ (démarrage, retour dans l'appli, retour du réseau, fin de leçon).
+```
+
+### 9.2 Coin des parents — section « Plusieurs téléphones »
+
+Placée **après** « Débloquer toutes les leçons » et **avant** « Tout réinitialiser ». Titre de section `h3`.
+
+**État A — pas de code famille sur ce téléphone**
+```
+ ┌────────────────────────────────────────────┐
+ │ Plusieurs téléphones                        │
+ │ Partage la progression entre les            │
+ │ téléphones de la famille.                   │
+ │                                             │
+ │ [ ➕ Créer un code famille ]   (secondaire)  │
+ │ [ 🔑 J'ai déjà un code ]       (secondaire)  │
+ └────────────────────────────────────────────┘
+```
+
+**État B — code créé à l'instant** (même section, remplace A)
+```
+ ┌────────────────────────────────────────────┐
+ │ Plusieurs téléphones                        │
+ │ Code famille :                              │
+ │ ┌────────────────────────────────────────┐ │
+ │ │   PIANO-7KQ3M-XH9PT-R4WZC               │ │  ← 22 px, 700, monospace-ish,
+ │ └────────────────────────────────────────┘ │    user-select: all
+ │ [ 📤 Partager le code ]       (principal)   │
+ │ Sur l'autre téléphone : ouvre Petit Piano,  │
+ │ puis « J'ai déjà un code ».                 │
+ │ Garde ce code : il sert aussi à tout        │
+ │ récupérer si un téléphone est perdu.        │
+ │                                             │
+ │ ✓ Synchronisé à l'instant        (muted)    │
+ │ Quitter la synchronisation ›    (lien)      │
+ └────────────────────────────────────────────┘
+```
+
+**État C — téléphone déjà dans une famille** (ouvertures suivantes) : identique à B (code, Partager, consignes, statut, Quitter). Le code reste toujours visible : c'est la seule « clé » de la famille.
+
+**« J'ai déjà un code »** (depuis A ou depuis l'écran de bienvenue) → modale :
+```
+ ┌────────────────────────────────────────────┐
+ │ Entre le code famille                       │
+ │ ┌────────────────────────────────────────┐ │
+ │ │ PIANO-                                  │ │  ← input text, autocapitalize="characters",
+ │ └────────────────────────────────────────┘ │    autocomplete="off", spellcheck="false",
+ │ (message d'erreur éventuel, --ink-soft)     │    inputmode="text", 24 px
+ │                                             │
+ │ [ Annuler ]              [ Rejoindre ▶ ]    │
+ └────────────────────────────────────────────┘
+```
+- Pendant la vérification : bouton « Rejoindre » désactivé, texte « Je vérifie… ». Délai max 10 s.
+- Succès depuis le coin des parents → modale fermée, toast « ✓ Progression partagée », section en état C, carte rafraîchie au retour.
+
+**Partager** : `navigator.share({ title, text, url })` si disponible (iPhone : feuille de partage → Messages, AirDrop, WhatsApp) ; sinon `navigator.clipboard.writeText(text)` + toast « Code copié ✓ » ; sinon (aucun des deux) le code est déjà sélectionnable (`user-select: all`). Une annulation de la feuille de partage (`AbortError`) n'affiche rien.
+
+**Quitter la synchronisation** → confirmation :
+« Ce téléphone ne sera plus synchronisé. La progression reste ici, et aussi sur les autres téléphones. » [Annuler] [Quitter]. Effet : on oublie le code **sur ce téléphone** (`sync = defaults`) ; les profils locaux restent intacts ; le document distant n'est pas touché (la suppression est de toute façon interdite par les règles). On peut revenir plus tard avec le même code.
+
+**Tout réinitialiser** quand le téléphone est dans une famille : le texte de confirmation devient « Effacer ce téléphone ? La progression reste sur les autres téléphones de la famille. » Effet : quitter la famille + réinitialisation locale v1. (Sinon la fusion suivante ferait revenir les données, ce qui serait déroutant.) Il n'y a **pas** de suppression d'un profil ou de sa progression à distance en v2.
+
+### 9.3 Écran de bienvenue (E1) — « J'ai déjà un code »
+
+```
+ ┌────────────────────────┐
+ │      🎹 Petit Piano     │
+ │  Salut ! Comment tu    │
+ │  t'appelles ?          │
+ │ ┌────────────────────┐ │
+ │ │                    │ │
+ │ └────────────────────┘ │
+ │  [   C'est parti ! ▶  ] │
+ │                        │
+ │ J'ai déjà un code      │  ← lien discret (--ink-soft, 16 px, cible ≥ 56 px de haut)
+ │ famille ›              │
+ └────────────────────────┘
+```
+- Ouvre la même modale que §9.2. Aucun profil local n'existe → la fusion revient à prendre les profils distants.
+- Succès :
+  - **0 profil** dans la famille (cas théorique) : on garde le code, on reste sur le formulaire prénom ; le profil créé sera envoyé.
+  - **1 profil** : il devient actif ; toast « Retrouvé : {prenom} {avatar} ! » puis parcours normal d'un 1er lancement sur ce téléphone : Réglage du micro (le micro et l'accordage sont propres au téléphone) → Carte.
+  - **≥ 2 profils** : écran « Qui joue ? » (§9.4), puis Réglage du micro → Carte.
+- Échec : message dans la modale, le formulaire prénom reste utilisable (on ne coince jamais l'enfant).
+
+### 9.4 E7 — « Qui joue ? »
+
+Prévu au §7, activé en v2. Affiché :
+- après avoir rejoint une famille qui a ≥ 2 profils ;
+- **au démarrage** s'il y a ≥ 2 profils sur le téléphone (le dernier joueur est pré-sélectionné visuellement, halo `--primary`) ;
+- au tap sur « Salut {prenom} ! » en haut de la carte, s'il y a ≥ 2 profils (sinon ce tap ne fait rien).
+
+```
+ ┌────────────────────────┐
+ │       Qui joue ?        │
+ │                        │
+ │  ┌──────┐   ┌──────┐   │
+ │  │  🦊  │   │  🐰  │   │  ← tuiles 120 × 140 px, avatar 56 px,
+ │  │ Léo  │   │ Zoé  │   │    prénom 22 px 600 ; 2 par ligne (téléphone)
+ │  │⭐ 14 │   │⭐ 3  │   │  ← total d'étoiles (petit, --ink-soft)
+ │  └──────┘   └──────┘   │
+ └────────────────────────┘
+```
+- Un tap = choisir : `activeProfile = id` (local, non synchronisé), `body.dataset.mode = profile.mode`, → Carte (ou Réglage du micro si le téléphone n'est pas calibré et que l'entrée est `mic`).
+- Ordre des tuiles : `createdAt` croissant, puis `id` (stable sur tous les téléphones).
+- Pas de bouton « Ajouter » ici (écran d'enfant). L'ajout d'un enfant reste dans le coin des parents (« + Ajouter un enfant » → formulaire prénom E1 ; nouvel id aléatoire §9.5). *Facultatif en v2 si le temps manque : la sœur n'a pas encore de profil.*
+
+### 9.5 Identifiants de profil
+
+- **Existant conservé** : `p1` (et tout `pN` v1) garde son id tel quel, à vie.
+- **Nouveaux profils** (à partir de v2) : `'p-' + 8 caractères base36` tirés avec `crypto.getRandomValues` (repli `Math.random`), ex. `p-k3x9q02m`. On boucle tant que l'id existe déjà localement.
+- **Collision d'ids à la jonction** (uniquement quand ce téléphone rejoint une famille, jamais pendant une synchro ordinaire) : pour chaque id présent **à la fois** en local et à distance :
+
+| Local vs distant (même id) | Décision |
+|---|---|
+| Id aléatoire `p-xxxxxxxx` | Même enfant (collision impossible en pratique) → fusion. |
+| Prénoms « identiques » après normalisation (trim, minuscules, sans accents : « Léo » = « leo ») | Même enfant → fusion. |
+| Prénoms différents **et** `createdAt` différents | Enfants différents → le profil **local** reçoit un nouvel id aléatoire (et `activeProfile` suit s'il pointait dessus), puis fusion normale (il est simplement ajouté). |
+| Prénoms différents **mais** `createdAt` identique | Aussi traité comme enfants différents (re-id du local). Raison : `createdAt` v1 n'a que la précision du jour ; deux enfants créés le même jour sur deux téléphones est plausible. En cas de doute, **dupliquer** est sans risque (rien n'est perdu, un profil en trop se voit tout de suite) alors que **fusionner deux enfants** mélangerait leurs étoiles. |
+
+  Pourquoi seulement à la jonction : une fois dans la même famille, les deux téléphones partagent les mêmes profils ; un prénom modifié par un parent est alors un **renommage** (règle « dernier modifié », §9.6), pas un autre enfant.
+- Implémentation : fonction pure `resolveJoinCollisions(localProfiles, remoteProfiles, newId)` → `{ profiles, renamed: { ancienId: nouvelId } }`, séparée de `mergeFamilies` (qui reste symétrique).
+
+### 9.6 Règles de fusion — `mergeFamilies(local, remote)`
+
+Fonction **pure** (`js/sync.js`, testée dans `tests/sync.test.js`), qui prend deux objets `profiles` (`{ id: profil }`, champs éventuellement manquants, formes v1) et renvoie un nouvel objet `profiles`. Aucune date « maintenant » n'y est lue.
+
+**Nouveau champ local** : `profile.updatedAt` (nombre, ms depuis 1970) = date de la dernière modification **par un parent** du prénom, de l'avatar, de `mode`/`curriculum` ou d'un réglage (`settings`). Absent (profil v1) → `0`. Jouer une leçon ne le modifie pas.
+
+| Donnée | Règle | Si absent / invalide |
+|---|---|---|
+| Profil présent d'un seul côté | Gardé tel quel (union des ids) | — |
+| `id` | Clé de la map (identique des deux côtés) | pris de la clé |
+| `createdAt` | Le plus ancien (min en chaîne `AAAA-MM-JJ`) | l'autre ; sinon absent |
+| `updatedAt` | Max | `0` |
+| `name`, `avatar`, `mode`, `curriculum`, `settings` (bloc entier) | Côté au `updatedAt` le plus grand. **Égalité** : champ par champ, la valeur dont le JSON est le plus grand (ordre de chaînes) — arbitraire mais identique sur tous les téléphones (commutatif) | valeur de l'autre côté ; sinon défaut v1 |
+| `progress` | Union des ids de leçon ; par leçon, règles ci-dessous (ids inconnus gardés) | `{}` |
+| `progress[l].stars` | **Max** (0 à 3) | `0` |
+| `progress[l].bestErrors` | **Min** | valeur de l'autre ; les deux absents → absent |
+| `progress[l].plays` | **Max** (pas la somme : la somme doublerait à chaque synchro) | `0` |
+| `progress[l].lastPlayed` | La plus récente (max en chaîne `AAAA-MM-JJ`) | l'autre |
+| `streak` | Gagnant = `last` le plus récent. Même `last` → `days` max. Si le perdant a `last` = veille du gagnant → `days = max(gagnant.days, perdant.days + 1)` (série jouée sur deux téléphones qui se suivent) | `{ days: 0, last: null }` ; `last: null` perd toujours |
+| Champs inconnus (futurs) | Pris du côté gagnant `updatedAt` ; à défaut de l'autre | — |
+
+Valeurs : un nombre invalide (`NaN`, chaîne, négatif) est traité comme absent ; `stars` borné à [0 ; 3] ; les entiers sont des `Number` JS.
+
+**Propriétés exigées (tests)** :
+- **Idempotente** : `merge(a, a)` ≡ `a` (à la normalisation près) et `merge(merge(a, b), b)` ≡ `merge(a, b)`.
+- **Commutative** : `merge(a, b)` ≡ `merge(b, a)` (y compris en cas d'égalité d'`updatedAt`).
+- **Associative** sur trois téléphones : `merge(merge(a, b), c)` ≡ `merge(a, merge(b, c))` pour la progression des leçons (pas exigée pour la série 🔥, dont la règle « veille + 1 » dépend de l'ordre).
+- **Monotone** : pour tout profil et toute leçon, `stars` du résultat ≥ `stars` de chaque entrée ; `bestErrors` ≤ ; `plays` ≥ ; aucun id de profil ni de leçon ne disparaît.
+- **Robuste** : entrées `undefined`/`null`/`{}`, profil v1 sans `updatedAt`, `settings` sans `unlockAll`, `streak.last` à `null`, progression sans `bestErrors` → pas d'exception, résultat complet.
+- **Pure** : les objets d'entrée ne sont pas modifiés.
+
+Limite assumée : si Léo joue la même leçon hors ligne sur les deux téléphones, `plays` vaut le max, pas la somme (compteur indicatif, jamais affiché à l'enfant).
+
+### 9.7 Algorithme de synchro
+
+État local nouveau (dans `petitpiano.v1`, **non synchronisé**) :
+```js
+sync: {
+  familyCode: null,     // "PIANO-7KQ3M-XH9PT-R4WZC" ou null
+  lastSyncAt: null,     // ms, dernière synchro réussie
+  lastState: "idle"     // "idle" | "syncing" | "ok" | "offline" | "error" | "tooNew"
+}
+```
+
+`PP.sync.run()` (sans effet si `familyCode` est null) :
+1. **Un seul à la fois** : si une synchro tourne, on note `again = true` et on relance une fois à la fin.
+2. **GET** du document (timeout 10 s via `AbortController`).
+   - 404 → le document n'existe pas (ne devrait pas arriver hors jonction) : écrire avec `currentDocument: { exists: false }`.
+   - Réseau absent / timeout / `TypeError` → `offline`, fin (réessai au prochain déclencheur).
+3. Décoder `profiles` (§9.8). Si `v` distant > `v` géré → `tooNew`, **aucune écriture**, fin.
+4. `merged = mergeFamilies(local.profiles, remote.profiles)`.
+5. **Appliquer et sauver en local d'abord** (`store.applyMerged(merged)` + `save()`), si `merged` ≠ local.
+6. Si `merged` ≡ `remote` (comparaison JSON canonique, clés triées) → pas d'écriture. Sinon **commit** avec `currentDocument: { updateTime: <updateTime du GET> }` et la transformation `updatedAt = REQUEST_TIME`.
+7. Conflit de précondition (HTTP 400 `FAILED_PRECONDITION`, 409 `ABORTED`/`ALREADY_EXISTS`) → recommencer à l'étape 2, **3 essais max** (pauses 300 ms, 1 s, 2 s). Au-delà → `error` (réessai au prochain déclencheur ; rien n'est perdu, le local est déjà à jour).
+8. 403 `PERMISSION_DENIED` ou autre → `error`.
+9. Succès → `lastSyncAt = Date.now()`, `ok`.
+
+**Déclencheurs** :
+| Événement | Délai |
+|---|---|
+| Démarrage de l'appli | après le 1er affichage (`setTimeout` 500 ms) |
+| `visibilitychange` → visible | immédiat, sauf si synchro réussie il y a < 30 s |
+| `online` | immédiat |
+| `recordLesson` (fin de leçon) | anti-rebond 3 s (écran Bravo déjà affiché) |
+| Changement par un parent (prénom, réglage, ajout d'enfant) | anti-rebond 3 s |
+
+**Jamais pendant une leçon ne change quoi que ce soit à l'écran** : la synchro peut tourner (données en mémoire + `localStorage`), mais seuls la Carte, « Qui joue ? » et le coin des parents relisent le store en s'affichant. Pendant une leçon, le moteur n'utilise que `store.profile()` au moment d'enregistrer (Bravo) ; comme la fusion est monotone, `recordLesson` garde toujours le meilleur score. Règle de code : ne pas conserver une référence à un objet profil au-delà d'un appel synchrone (toujours repasser par `store.profile()`), car `applyMerged` remplace les entrées de `data.profiles`.
+- Si la synchro change quelque chose pendant que la Carte est affichée : re-rendu **silencieux** de la carte (étoiles, cadenas, série) sans animation ni toast, et sans perdre la position de défilement. Si l'écran courant est `lesson`, `bravo` ou `mic` : rien ; le prochain `showMap()` affichera l'état fusionné.
+- Si le profil actif n'existe plus localement (impossible par construction, sauf bug) : écran « Qui joue ? ».
+
+**Jonction** (`join(code)`) : GET → 404 : erreur « introuvable » ; OK → `resolveJoinCollisions` puis `mergeFamilies` → sauver en local (avec `familyCode`) → commit avec précondition (boucle de l'étape 7). Le code n'est enregistré qu'après un GET réussi. Si le commit échoue après un GET réussi (réseau coupé entre les deux) : la jonction est quand même validée (le local a déjà tout), la synchro suivante enverra. Tant que ce premier envoi n'a pas réussi, `sync.pendingJoin` (sauvegardé) reste vrai et chaque synchro refait `resolveJoinCollisions` sur le GET frais avant de fusionner : un autre enfant écrit entre-temps sous le même id (« p1 ») par un autre téléphone est ainsi séparé, pas fusionné (test : `tests/sync-scenario.test.js`).
+
+**Création** (`create()`) : génère un code, commit avec `exists: false` ; conflit (improbable) → nouveau code ; hors ligne → message d'erreur, rien n'est enregistré.
+
+**Au démarrage** : `navigator.storage && navigator.storage.persist && navigator.storage.persist().catch(noop)` une fois (réduit le risque d'effacement par iOS).
+
+### 9.8 Code famille
+
+- Format : `PIANO-XXXXX-XXXXX-XXXXX` — 3 groupes de 5 caractères de l'alphabet `23456789ABCDEFGHJKMNPQRSTUVWXYZ` (31 signes : sans 0, O, 1, I, L). 15 × log₂31 ≈ **74 bits**. (3 × 4 = 59 bits ne suffisait pas.) Longueur 23, conforme à `^[A-Za-z0-9-]{16,64}$`.
+- Tirage : `crypto.getRandomValues(Uint8Array)`, rejet des octets ≥ 248 (= 8 × 31) pour éviter le biais.
+- **Normalisation de la saisie** : majuscules → retirer tout ce qui n'est pas `A-Z0-9` → retirer le préfixe `PIANO` s'il est en tête → il doit rester **exactement 15 signes de l'alphabet** → reformer `PIANO-XXXXX-XXXXX-XXXXX`. Tolère espaces, tirets manquants ou en trop, minuscules, et un message partagé collé en entier si on n'en garde que le code (on cherche d'abord `PIANO[\s-]*…` dans le texte collé).
+  - Présence de 0, O, 1, I ou L → « Ce code contient un 0, un O, un 1, un I ou un L : il n'y en a jamais. Vérifie-le. »
+  - Mauvaise longueur → « Ce code n'a pas l'air complet. Vérifie-le. »
+- Le code est la seule protection : ne l'envoyer qu'entre parents (dit dans le texte de partage).
+
+### 9.9 Données dans Firestore
+
+Document `familles/{CODE}` (le code canonique, avec tirets). Clés **exactement** `v`, `profiles`, `updatedAt` (imposé par les règles).
+
+```json
+{
+  "fields": {
+    "v": { "integerValue": "1" },
+    "updatedAt": { "timestampValue": "2026-09-27T18:04:11.201Z" },      // posé par le serveur (REQUEST_TIME)
+    "profiles": { "mapValue": { "fields": {
+      "p1": { "mapValue": { "fields": {
+        "id":         { "stringValue": "p1" },
+        "name":       { "stringValue": "Léo" },
+        "mode":       { "stringValue": "grand" },
+        "curriculum": { "stringValue": "grand" },
+        "avatar":     { "stringValue": "🦊" },
+        "createdAt":  { "stringValue": "2026-09-20" },
+        "updatedAt":  { "integerValue": "1790000000000" },
+        "settings":   { "mapValue": { "fields": {
+          "voiceAuto": { "booleanValue": false },
+          "unlockAll": { "booleanValue": false } } } },
+        "progress":   { "mapValue": { "fields": {
+          "l01": { "mapValue": { "fields": {
+            "stars":      { "integerValue": "3" },
+            "bestErrors": { "integerValue": "0" },
+            "plays":      { "integerValue": "2" },
+            "lastPlayed": { "stringValue": "2026-09-27" } } } } } } },
+        "streak":     { "mapValue": { "fields": {
+          "days": { "integerValue": "3" },
+          "last": { "stringValue": "2026-09-27" } } } }
+      } } }
+    } } }
+  }
+}
+```
+
+**Encodage générique** (`encodeValue` / `decodeValue`, purs, testés) :
+| JS | Firestore |
+|---|---|
+| `string` | `stringValue` |
+| `boolean` | `booleanValue` |
+| `null` | `nullValue: null` |
+| nombre entier | `integerValue` (**chaîne** en JSON : `"3"`) |
+| nombre non entier | `doubleValue` |
+| objet | `mapValue: { fields: {...} }` ; objet vide → `mapValue: {}` (pas de `fields`) |
+| tableau | `arrayValue: { values: [...] }` ; vide → `arrayValue: {}` |
+| `undefined` | champ omis |
+
+Décodage : `integerValue` → `Number(...)` ; `doubleValue` → nombre ; `mapValue` sans `fields` → `{}` ; `arrayValue` sans `values` → `[]` ; `timestampValue` → chaîne ISO ; type inconnu → ignoré (champ omis). Test aller-retour : `decode(encode(x))` ≡ `x` pour un état v1 réel.
+
+- `v` = version du **format du document** (1). Un téléphone qui lit `v` > 1 n'écrit pas (état `tooNew`).
+- Les clés de map (ids de profil `p1`, `p-k3x9q02m`, ids de leçon `l01`) sont des chaînes simples, sans `.` ni `/` : acceptées telles quelles.
+- Taille : quelques Ko par enfant, très loin de la limite de 1 Mo.
+
+### 9.10 Stockage local (migration en place, sans perte)
+
+- Même clé `petitpiano.v1`. `version` passe à 2 dans l'objet. `load()` (déjà tolérant, fusion avec les défauts) ajoute `sync: { familyCode: null, lastSyncAt: null, lastState: "idle" }` et `updatedAt: 0` aux profils qui n'en ont pas. `p1` inchangé ; progression, série et réglages intacts.
+- `activeProfile` et `device` ne sont jamais écrits ni lus à distance.
+- Stockage local indisponible : la synchro marche pour la session (en mémoire), mais le code sera oublié au prochain lancement ; l'avertissement v1 de ⚙ suffit.
+- Remarque iPhone : une appli « ajoutée à l'écran d'accueil » a un stockage **séparé** de Safari. Le code famille permet aussi de retrouver la progression entre les deux (utile si le parent a d'abord utilisé Safari).
+
+### 9.11 Cas limites
+
+| Situation | Comportement |
+|---|---|
+| Pas de réseau au démarrage / pendant une leçon | Rien ne change pour l'enfant. Statut ⚙ « Hors ligne ». Synchro au retour du réseau (`online`), au retour dans l'appli ou au démarrage suivant. |
+| Pas de réseau pendant « Créer un code » / « Rejoindre » | Message dans la modale/section : « Pas de connexion internet. Réessaie plus tard. » Rien n'est enregistré. |
+| Code inconnu (GET 404) | « Je ne trouve pas ce code. Vérifie-le sur l'autre téléphone. » |
+| Code mal formé | Messages §9.8 ; pas d'appel réseau. |
+| Deux téléphones écrivent en même temps | Précondition `updateTime` : le second échoue, relit, fusionne (monotone), réécrit. 3 essais. Aucune perte, quel que soit l'ordre. |
+| Léo joue la même leçon sur les deux téléphones hors ligne | À la synchro : meilleures étoiles, moins d'erreurs, dernière date gardées. |
+| Série 🔥 jouée lundi sur le téléphone A, mardi sur B hors ligne | Règle `streak` §9.6 : la série continue (`days` = A.days + 1 au minimum). |
+| Parents renomment l'enfant sur les deux téléphones | Le renommage le plus récent (`updatedAt`) gagne partout. |
+| Ids `p1` identiques pour deux enfants différents (chaque téléphone a créé son `p1`) | À la jonction : re-id du profil local (§9.5). Les deux enfants apparaissent ; « Qui joue ? » s'affiche. |
+| Même enfant créé deux fois (`p1` « Léo » et `p1` « leo ») | Même enfant → fusion. Si ids différents (ex. `p1` et `p-…` « Léo ») : deux profils « Léo » coexistent (rien de perdu). Fusion manuelle de profils : hors périmètre v2. |
+| Synchro qui arrive pendant une leçon | La leçon continue sans aucun changement visible ; le Bravo enregistre avec `max` ; la carte affiche l'état fusionné au retour. |
+| Synchro qui arrive sur la carte | Re-rendu silencieux (pas de toast, pas d'animation, pas de saut de défilement). |
+| Profil sélectionné sur l'autre téléphone | `activeProfile` est local : chaque téléphone garde son dernier joueur. |
+| Document distant d'un format plus récent (`v` > 1) | Pas d'écriture ; ⚙ « Mets à jour Petit Piano sur ce téléphone pour synchroniser. » (recharger la page). |
+| « Tout réinitialiser » dans une famille | Quitte la famille + efface ce téléphone seulement (§9.2). |
+| Téléphone perdu / changé | Nouveau téléphone : « J'ai déjà un code » avec le code gardé → tout revient. |
+| Fermeture de l'appli pendant une écriture | Le local est déjà sauvé (étape 5) ; l'écriture sera refaite à la synchro suivante (le distant est « en retard », jamais « en avance »). |
+
+### 9.12 Textes (`js/strings.js`)
+
+```js
+// E1 — Bienvenue
+'welcome.haveCode': 'J\'ai déjà un code famille ›',
+
+// E7 — Qui joue ?
+'who.title': 'Qui joue ?',
+'who.found': 'Retrouvé : {prenom} {avatar} !',
+
+// E6 — Plusieurs téléphones
+'sync.title': 'Plusieurs téléphones',
+'sync.intro': 'Partage la progression entre les téléphones de la famille.',
+'sync.create': '➕ Créer un code famille',
+'sync.join': '🔑 J\'ai déjà un code',
+'sync.codeLabel': 'Code famille :',
+'sync.share': '📤 Partager le code',
+'sync.howTo': 'Sur l\'autre téléphone : ouvre Petit Piano, puis « J\'ai déjà un code ».',
+'sync.keep': 'Garde ce code : il sert aussi à tout récupérer si un téléphone est perdu.',
+'sync.copied': 'Code copié ✓',
+'sync.shareTitle': 'Petit Piano',
+'sync.shareText': 'Code famille Petit Piano : {code}\nSur l\'autre téléphone : ouvre Petit Piano, puis « J\'ai déjà un code ». (À garder entre parents.)',
+'sync.creating': 'Création du code…',
+'sync.joinTitle': 'Entre le code famille',
+'sync.joinGo': 'Rejoindre ▶',
+'sync.checking': 'Je vérifie…',
+'sync.joined': '✓ Progression partagée',
+'sync.errNotFound': 'Je ne trouve pas ce code. Vérifie-le sur l\'autre téléphone.',
+'sync.errFormat': 'Ce code n\'a pas l\'air complet. Vérifie-le.',
+'sync.errChars': 'Ce code contient un 0, un O, un 1, un I ou un L : il n\'y en a jamais. Vérifie-le.',
+'sync.errOffline': 'Pas de connexion internet. Réessaie plus tard.',
+'sync.errOther': 'Ça n\'a pas marché. Réessaie dans un moment.',
+'sync.leave': 'Quitter la synchronisation ›',
+'sync.leaveConfirm': 'Ce téléphone ne sera plus synchronisé. La progression reste ici, et aussi sur les autres téléphones.',
+'sync.leaveYes': 'Quitter',
+'sync.resetConfirmFamily': 'Effacer ce téléphone ? La progression reste sur les autres téléphones de la famille.',
+
+// Statut (petit, --ink-soft, sous le code)
+'sync.statusNow': '✓ Synchronisé à l\'instant',
+'sync.statusMin': '✓ Synchronisé il y a {n} min',
+'sync.statusHour': '✓ Synchronisé il y a {n} h',
+'sync.statusDay': '✓ Synchronisé le {date}',          // date locale « 27/09 »
+'sync.statusSyncing': 'Synchronisation…',
+'sync.statusOffline': 'Hors ligne, sera synchronisé plus tard',
+'sync.statusError': 'Pas encore synchronisé, nouvel essai bientôt',
+'sync.statusTooNew': 'Mets à jour Petit Piano sur ce téléphone pour synchroniser.',
+
+// Profils
+'parents.addChild': '+ Ajouter un enfant',   // facultatif v2
+```
+Statut : < 1 min → « à l'instant » ; < 60 min → min ; < 24 h → h ; sinon date. Rafraîchi à l'ouverture du coin des parents et à la fin de chaque synchro si la section est visible.
+
+### 9.13 Fichiers et découpage (pour le développeur)
+
+- `js/sync.js` (nouveau, après `storage.js`) : fonctions pures `encodeValue`/`decodeValue`, `encodeProfiles`/`decodeProfiles`, `mergeFamilies`, `resolveJoinCollisions`, `normalizeCode`, `generateCode`, `newProfileId` ; plus la partie réseau `PP.sync = { run, create, join, leave, status, onChange }`. Exporté aussi pour Node (`module.exports`) comme `notes.js`, pour les tests.
+- `js/storage.js` : `sync` et `updatedAt` dans les défauts ; `createProfile` → id aléatoire ; `applyMerged(profiles)` ; `touchProfile()` (pose `updatedAt = Date.now()` sur un changement parent) ; hook « modifié » pour l'anti-rebond de synchro ; `reset()` inchangé (la sortie de famille est faite par l'appelant).
+- `js/app.js` : section « Plusieurs téléphones », lien sur E1, écran E7 « Qui joue ? », déclencheurs, `storage.persist()`.
+- `tests/sync.test.js` (Node, sans dépendance, style de `curriculum.test.js`) : encodage aller-retour, toutes les lignes du tableau §9.6, propriétés (idempotence, commutativité, associativité, monotonie sur des cas générés aléatoirement), formes v1 incomplètes, collisions §9.5, normalisation du code (espaces, minuscules, sans tirets, message collé, 0/O/1/I/L, longueurs), entropie/format de `generateCode` (regex des règles).
+- `tests/sync-scenario.test.js` : plusieurs téléphones simulés + faux Firestore (préconditions) : jonction dont l'envoi échoue puis collision d'id, jonctions simultanées, même enfant fusionné, coupure pendant la lecture → « hors ligne », nouvel essai après échec.
+
+### 9.14 Terminé quand…
+
+- [ ] Le téléphone de papa, mis à jour, garde `p1` et toute la progression de Léo **sans rien faire**.
+- [ ] « Créer un code » → « Partager » (feuille iPhone) → sur le téléphone de maman, « J'ai déjà un code » depuis l'écran de bienvenue → Léo retrouve ses étoiles.
+- [ ] Une leçon finie sur un téléphone apparaît sur l'autre au retour dans l'appli.
+- [ ] Mode avion : aucune différence pour l'enfant ; statut « Hors ligne » dans ⚙ ; tout part au retour du réseau.
+- [ ] Deux téléphones qui finissent une leçon à la même seconde : les deux résultats sont conservés.
+- [ ] Aucune étoile ne diminue jamais, dans aucun scénario de `tests/sync.test.js`.
+- [ ] Rien ne bouge à l'écran pendant une leçon quand une synchro arrive.
+
+---
+
 ## Revue du critique
 
 Relecture exigeante : pédagogie (9 ans, débutant complet), UX tablette/téléphone sur pupitre, faisabilité de la détection au micro sur piano acoustique. Chaque mélodie a été vérifiée note par note.

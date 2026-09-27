@@ -14,6 +14,12 @@
       'welcome.hello': 'Salut ! Comment tu t\'appelles ?',
       'welcome.placeholder': 'Ton prénom',
       'welcome.go': 'C\'est parti ! ▶',
+      'welcome.haveCode': 'J\'ai déjà un code famille ›',
+      'welcome.newChild': 'Nouvel enfant : comment il ou elle s\'appelle ?',
+
+      // E7 — Qui joue ?
+      'who.title': 'Qui joue ?',
+      'who.found': 'Retrouvé : {prenom} {avatar} !',
 
       // E2 — Réglage du micro
       'mic.explain1': 'Pour t\'entendre jouer, j\'ai besoin du micro.',
@@ -110,8 +116,47 @@
       'parents.resetYes': 'Oui, tout effacer',
       'parents.cancel': 'Annuler',
       'parents.storageWarn': '⚠️ La progression ne peut pas être sauvegardée sur cet appareil.',
+      'parents.addChild': '+ Ajouter un enfant',
       'parents.debug': 'Astuce : ajoute ?debug=1 à l\'adresse pour voir ce que le micro entend.',
       'parents.back': '◀ Retour',
+
+      // E6 — Plusieurs téléphones (DESIGN §9.12)
+      'sync.title': 'Plusieurs téléphones',
+      'sync.intro': 'Partage la progression entre les téléphones de la famille.',
+      'sync.create': '➕ Créer un code famille',
+      'sync.join': '🔑 J\'ai déjà un code',
+      'sync.codeLabel': 'Code famille :',
+      'sync.share': '📤 Partager le code',
+      'sync.howTo': 'Sur l\'autre téléphone : ouvre Petit Piano, puis « J\'ai déjà un code ».',
+      'sync.keep': 'Garde ce code : il sert aussi à tout récupérer si un téléphone est perdu.',
+      'sync.copied': 'Code copié ✓',
+      'sync.shareTitle': 'Petit Piano',
+      'sync.shareText': 'Code famille Petit Piano : {code}\nSur l\'autre téléphone : ouvre Petit Piano, puis « J\'ai déjà un code ». (À garder entre parents.)',
+      'sync.creating': 'Création du code…',
+      'sync.joinTitle': 'Entre le code famille',
+      'sync.joinGo': 'Rejoindre ▶',
+      'sync.checking': 'Je vérifie…',
+      'sync.joined': '✓ Progression partagée',
+      'sync.errNotFound': 'Je ne trouve pas ce code. Vérifie-le sur l\'autre téléphone.',
+      'sync.errFormat': 'Ce code n\'a pas l\'air complet. Vérifie-le.',
+      'sync.errChars': 'Ce code contient un 0, un O, un 1, un I ou un L : il n\'y en a jamais. Vérifie-le.',
+      'sync.errOffline': 'Pas de connexion internet. Réessaie plus tard.',
+      'sync.errOther': 'Ça n\'a pas marché. Réessaie dans un moment.',
+      'sync.leave': 'Quitter la synchronisation ›',
+      'sync.leaveConfirm': 'Ce téléphone ne sera plus synchronisé. La progression reste ici, et aussi sur les autres téléphones.',
+      'sync.leaveYes': 'Quitter',
+      'sync.resetConfirmUnsynced': 'Ce téléphone n\'est pas synchronisé : les dernières leçons jouées ici seront perdues. Tout effacer ?',
+      'sync.resetConfirmFamily': 'Effacer ce téléphone ? La progression reste sur les autres téléphones de la famille.',
+
+      // Statut (petit, sous le code)
+      'sync.statusNow': '✓ Synchronisé à l\'instant',
+      'sync.statusMin': '✓ Synchronisé il y a {n} min',
+      'sync.statusHour': '✓ Synchronisé il y a {n} h',
+      'sync.statusDay': '✓ Synchronisé le {date}',
+      'sync.statusSyncing': 'Synchronisation…',
+      'sync.statusOffline': 'Hors ligne, sera synchronisé plus tard',
+      'sync.statusError': 'Pas encore synchronisé, nouvel essai bientôt',
+      'sync.statusTooNew': 'Mets à jour Petit Piano sur ce téléphone pour synchroniser.',
 
       // Aides par note (après 2 erreurs, si l'étape n'a pas son propre « hint »)
       'hint.C': 'Le Do est juste à gauche des 2 touches noires.',

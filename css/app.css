@@ -465,6 +465,40 @@ strong { font-weight: 700; }
 .segmented .btn.active { background: var(--primary); color: #fff; }
 .warn { background: #FFF3CD; padding: 12px; border-radius: 12px; font-weight: 600; }
 
+/* ---------- E6 : plusieurs téléphones (DESIGN §9.2) ---------- */
+
+.sync-section h3 { margin: 0; font-size: 20px; }
+.sync-section p { margin: 0; font-weight: 400; }
+.sync-section .row { margin-top: 4px; }
+.sync-code {
+  font: 700 22px/1.2 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .5px;
+  background: #EFEAFE; color: var(--ink); border-radius: 14px; padding: 14px 12px; text-align: center;
+  -webkit-user-select: all; user-select: all; overflow-wrap: anywhere;
+}
+.sync-status { font-size: 15px; }
+.code-input {
+  display: block; width: 100%; margin: 12px auto 0; text-align: center; letter-spacing: 0; padding-inline: 8px;
+  font: 700 clamp(17px, 5.2vw, 24px)/1 ui-monospace, "SF Mono", Menlo, monospace;   /* code entier visible sur iPhone ; ≥ 16px : pas de zoom iOS */
+}
+.join-error { min-height: 1.3em; margin: 10px 0 0; }
+.btn.link.soft { color: var(--ink-soft); font-size: 16px; min-height: 56px; margin-top: 8px; }
+
+/* ---------- E7 : Qui joue ? (DESIGN §9.4) ---------- */
+
+.who-grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+.who-tile {
+  width: 120px; min-height: 140px; border: 0; border-radius: 20px; background: #F6F3FF; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 6px;
+  box-shadow: 0 3px 0 var(--line);
+}
+.who-tile:active { transform: scale(.96); }
+.who-tile.last { box-shadow: 0 0 0 4px var(--primary); }
+.who-tile:focus-visible { outline: 4px solid var(--primary); outline-offset: 3px; }
+.who-avatar { font-size: 56px; line-height: 1; }
+.who-name { font-size: 22px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who-stars { font-size: 15px; color: var(--ink-soft); }
+.hello.tappable { cursor: pointer; }
+
 /* ---------- fenêtres superposées ---------- */
 
 .modal { position: fixed; inset: 0; background: rgba(31, 26, 61, .45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 20; }

@@ -28,7 +28,17 @@
         <input id="welcome-name" class="name-input" type="text" maxlength="20" autocapitalize="words" spellcheck="false">
         <button id="welcome-go" class="btn primary big" type="submit" disabled data-t="welcome.go"></button>
       </form>
+      <button id="welcome-code" class="btn link soft" type="button" data-t="welcome.haveCode"></button>
+      <button id="welcome-back" class="btn link soft" type="button" hidden data-t="parents.back"></button>
       <div class="deco-keys" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- E7 — Qui joue ? (DESIGN §9.4) -->
+  <section id="screen-who" class="screen center" hidden>
+    <div class="card narrow">
+      <h1 class="logo" data-t="who.title"></h1>
+      <div id="who-grid" class="who-grid"></div>
     </div>
   </section>
 
@@ -173,6 +183,10 @@
         <input id="parents-unlock" type="checkbox"><span data-t="parents.unlockAll"></span>
       </label>
       <div class="setting">
+        <button id="parents-add-child" class="btn secondary" data-t="parents.addChild"></button>
+      </div>
+      <div id="parents-sync" class="setting sync-section"></div>
+      <div class="setting">
         <button id="parents-reset" class="btn danger" data-t="parents.reset"></button>
       </div>
       <p class="muted" data-t="parents.debug"></p>
@@ -194,6 +208,8 @@
   <script src="js/strings.js"></script>
   <script src="js/curriculum.js"></script>
   <script src="js/storage.js"></script>
+  <script src="js/sync-config.js"></script>
+  <script src="js/sync.js"></script>
   <script src="js/synth.js"></script>
   <script src="js/pitch.js"></script>
   <script src="js/voice.js"></script>

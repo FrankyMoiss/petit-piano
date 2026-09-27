@@ -1,6 +1,8 @@
-/* Petit Piano — profils et progression (DESIGN §6.4).
+/* Petit Piano — profils et progression (DESIGN §6.4, §9.10).
  * localStorage entouré de try/catch : si le stockage est indisponible (navigation
  * privée, quota…), tout reste en mémoire et l'appli fonctionne pour la session.
+ * v2 : même clé qu'en v1, migration en place sans perte (ajout de `sync` et de
+ * `profile.updatedAt`) ; les profils existants (p1…) gardent leur id à vie.
  */
 (function (root) {
   'use strict';
@@ -10,12 +12,17 @@
 
   function defaults() {
     return {
-      version: 1,
+      version: 2,
       activeProfile: null,
-      device: { input: 'mic', noiseFloor: null, tuningCents: 0, calibrated: false },
-      profiles: {}
+      device: { input: 'mic', noiseFloor: null, tuningCents: 0, calibrated: false },   // propre au téléphone, jamais synchronisé
+      profiles: {},
+      sync: syncDefaults()                                                             // propre au téléphone (§9.7)
     };
   }
+
+  function syncDefaults() { return { familyCode: null, lastSyncAt: null, lastState: 'idle', pendingJoin: false }; }
+
+  var AVATARS = ['🦊', '🐰', '🐻', '🐱', '🐼', '🦁', '🐸', '🐧'];
 
   function profileDefaults(id, name) {
     return {
@@ -25,6 +32,7 @@
       curriculum: 'grand',
       avatar: '🦊',
       createdAt: localDate(),
+      updatedAt: 0,            // dernière modification par un parent (ms) ; 0 = profil v1 (§9.6)
       settings: { voiceAuto: false, unlockAll: false },   // réglages propres à chaque enfant
       progress: {},
       streak: { days: 0, last: null }
@@ -55,6 +63,14 @@
 
   var data = defaults();
   var storageOk = true;
+  var changeListeners = [];
+
+  /** Prévient la synchro (anti-rebond) : kind = 'lesson' | 'profile'. */
+  function changed(kind) {
+    changeListeners.forEach(function (fn) { try { fn(kind); } catch (e) { /* jamais bloquant */ } });
+  }
+
+  function syncLib() { return PP.syncLib || null; }
 
   var store = {
     /** Charge l'état ; JSON invalide ou stockage bloqué → état vide, sans planter. */
@@ -78,6 +94,9 @@
             data.profiles[id] = merge(profileDefaults(id, ''), data.profiles[id]);
             if (legacyUnlock) data.profiles[id].settings.unlockAll = true;
           });
+          data.version = 2;
+          if (!data.sync || typeof data.sync !== 'object') data.sync = syncDefaults();
+          if (data.sync.lastState === 'syncing') data.sync.lastState = 'idle';
         } catch (e) { data = defaults(); }
       }
       return data;
@@ -95,17 +114,87 @@
     storageOk: function () { return storageOk; },
     device: function () { return data.device; },
 
+    /** Profil actif. Ne pas garder la référence au-delà d'un appel : la synchro remplace les objets. */
     profile: function () { return data.activeProfile ? data.profiles[data.activeProfile] || null : null; },
 
-    /** Crée un profil (p1, p2…) et le rend actif. */
-    createProfile: function (name) {
-      var n = 1;
-      while (data.profiles['p' + n]) n++;
-      var id = 'p' + n;
-      data.profiles[id] = profileDefaults(id, name);
+    profiles: function () { return data.profiles; },
+
+    /** Profils triés pour « Qui joue ? » : createdAt croissant, puis id (même ordre sur tous les téléphones). */
+    profileList: function () {
+      return Object.keys(data.profiles).map(function (id) { return data.profiles[id]; }).sort(function (a, b) {
+        var ca = a.createdAt || '', cb = b.createdAt || '';
+        return ca < cb ? -1 : ca > cb ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+      });
+    },
+
+    setActive: function (id) {
+      if (!data.profiles[id]) return;
       data.activeProfile = id;
       store.save();
+    },
+
+    /** Crée un profil (nouvel id aléatoire « p-xxxxxxxx », §9.5) et le rend actif. */
+    createProfile: function (name) {
+      var lib = syncLib(), id;
+      if (lib) id = lib.newProfileId(data.profiles);
+      else { var n = 1; while (data.profiles['p' + n]) n++; id = 'p' + n; }
+      var p = profileDefaults(id, name);
+      var used = Object.keys(data.profiles).map(function (k) { return data.profiles[k].avatar; });
+      p.avatar = AVATARS.filter(function (a) { return used.indexOf(a) < 0; })[0] || AVATARS[0];
+      p.updatedAt = Date.now();
+      data.profiles[id] = p;
+      data.activeProfile = id;
+      store.save();
+      changed('profile');
       return data.profiles[id];
+    },
+
+    /** Un parent a modifié le prénom, l'avatar ou un réglage du profil actif (§9.6). */
+    touchProfile: function () {
+      var p = store.profile();
+      if (p) p.updatedAt = Math.max(Date.now(), (p.updatedAt || 0) + 1);
+      store.save();
+      changed('profile');
+    },
+
+    /** Écoute les changements à synchroniser. */
+    onChange: function (fn) { changeListeners.push(fn); },
+
+    /**
+     * Intègre des profils venus d'un autre téléphone. C'est TOUJOURS une fusion monotone
+     * (jamais un remplacement) : même appelée avec n'importe quoi, rien de local ne recule.
+     * Renvoie true si quelque chose a changé en local.
+     */
+    applyMerged: function (profiles) {
+      var lib = syncLib();
+      if (!lib) return false;
+      var next = lib.mergeFamilies(data.profiles, profiles);
+      if (lib.canon(next) === lib.canon(data.profiles)) return false;
+      data.profiles = next;
+      store.save();
+      return true;
+    },
+
+    /** Jonction : renomme des profils locaux ({ ancienId: nouvelId }) ; activeProfile suit. */
+    reidProfiles: function (renamed) {
+      var ids = Object.keys(renamed || {});
+      if (!ids.length) return;
+      ids.forEach(function (oldId) {
+        var p = data.profiles[oldId], nid = renamed[oldId];
+        if (!p || data.profiles[nid]) return;
+        p.id = nid;
+        data.profiles[nid] = p;
+        delete data.profiles[oldId];
+        if (data.activeProfile === oldId) data.activeProfile = nid;
+      });
+      store.save();
+    },
+
+    syncState: function () { return data.sync; },
+
+    setSync: function (patch, noSave) {
+      Object.keys(patch).forEach(function (k) { data.sync[k] = patch[k]; });
+      if (!noSave) store.save();
     },
 
     setDevice: function (patch) {
@@ -137,13 +226,15 @@
       var p = store.profile();
       var today = localDate();
       var prev = p.progress[lessonId];
-      var previousStars = prev ? prev.stars : 0;
-      p.progress[lessonId] = {
-        stars: Math.max(previousStars, stars),
-        bestErrors: prev ? Math.min(prev.bestErrors, errors) : errors,
-        plays: (prev ? prev.plays : 0) + 1,
-        lastPlayed: today
-      };
+      var previousStars = prev ? prev.stars || 0 : 0;
+      var prevErr = prev && typeof prev.bestErrors === 'number' && isFinite(prev.bestErrors) ? prev.bestErrors : errors;
+      var entry = {};
+      if (prev) Object.keys(prev).forEach(function (k) { entry[k] = prev[k]; });   // champs futurs conservés
+      entry.stars = Math.max(previousStars, stars);
+      entry.bestErrors = Math.min(prevErr, errors);
+      entry.plays = (prev ? prev.plays || 0 : 0) + 1;
+      entry.lastPlayed = today;
+      p.progress[lessonId] = entry;
       // Série de jours : +1 si la veille, inchangée si déjà aujourd'hui, sinon 1.
       var s = p.streak;
       if (s.last !== today) {
@@ -151,6 +242,7 @@
         s.last = today;
       }
       store.save();
+      changed('lesson');
       return { previousStars: previousStars, record: !!prev && stars > previousStars };
     },
 

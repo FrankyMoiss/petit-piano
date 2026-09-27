@@ -35,6 +35,14 @@ Sur la carte des leçons, **appui long (2 secondes) sur ⚙** :
 changer le prénom, refaire le test du micro, passer en mode écran, lecture des consignes à voix haute,
 **débloquer toutes les leçons**, tout réinitialiser.
 
+## Plusieurs téléphones (papa, maman…)
+
+La progression peut être partagée entre les téléphones de la famille.
+Sur le téléphone où votre enfant a déjà joué : **⚙ (appui long) › Plusieurs téléphones › Créer un code famille**, puis **Partager le code**.
+Sur l'autre téléphone : ouvrez Petit Piano, puis **« J'ai déjà un code famille »** (écran d'accueil) ou la même section du coin des parents.
+Ensuite tout se synchronise seul (au démarrage, au retour dans l'appli, au retour du réseau, après chaque leçon). Sans réseau, l'appli marche comme avant.
+Gardez ce code entre parents : il permet aussi de tout récupérer sur un nouveau téléphone.
+
 ## Si l'appli n'entend pas bien le piano
 
 - Rapprochez la tablette du piano, jouez un peu plus fort, coupez la télé.
