@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FFF8EC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Petit Piano">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Petit Piano</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎹%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body data-mode="grand">
+
+  <!-- E1 — Bienvenue / Prénom -->
+  <section id="screen-welcome" class="screen center" hidden>
+    <div class="card narrow">
+      <h1 class="logo">🎹 <span data-t="appName"></span></h1>
+      <form id="welcome-form" autocomplete="off">
+        <label for="welcome-name" class="big-label" data-t="welcome.hello"></label>
+        <input id="welcome-name" class="name-input" type="text" maxlength="20" autocapitalize="words" spellcheck="false">
+        <button id="welcome-go" class="btn primary big" type="submit" disabled data-t="welcome.go"></button>
+      </form>
+      <div class="deco-keys" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- E2 — Réglage du micro -->
+  <section id="screen-mic" class="screen center" hidden>
+    <div class="card narrow">
+      <!-- A. Explication -->
+      <div id="mic-explain" class="mic-panel">
+        <div class="hero-emoji" aria-hidden="true">🎤 👂</div>
+        <p class="lead" data-t="mic.explain1"></p>
+        <p data-t="mic.explain2"></p>
+        <p data-t="mic.explain3"></p>
+        <button id="mic-enable" class="btn primary big" data-t="mic.enable"></button>
+        <button id="mic-skip" class="btn link" data-t="mic.noMic"></button>
+      </div>
+      <!-- B. Fenêtre du navigateur -->
+      <div id="mic-waiting" class="mic-panel" hidden>
+        <div class="hero-emoji" aria-hidden="true">🎤</div>
+        <p class="lead" data-t="mic.waiting"></p>
+      </div>
+      <!-- C. Silence -->
+      <div id="mic-silence" class="mic-panel" hidden>
+        <div class="ring" aria-hidden="true"><svg viewBox="0 0 100 100"><circle class="ring-bg" cx="50" cy="50" r="42"/><circle class="ring-fg" cx="50" cy="50" r="42"/></svg><span>🤫</span></div>
+        <p class="lead" data-t="mic.silence"></p>
+      </div>
+      <!-- D. Test -->
+      <div id="mic-test" class="mic-panel" hidden>
+        <p class="lead" data-t="mic.testTitle"></p>
+        <div class="meter" aria-hidden="true"><div id="mic-meter-fill" class="meter-fill"></div></div>
+        <div id="mic-last-note" class="bubble big empty" aria-live="polite">?</div>
+        <p id="mic-heard" class="heard"></p>
+        <div id="mic-dots" class="dots" aria-hidden="true"></div>
+        <button id="mic-help-open" class="btn link" data-t="mic.hearNothing"></button>
+        <button id="mic-done" class="btn secondary big" data-t="mic.works"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- E2b — Micro bloqué -->
+  <section id="screen-blocked" class="screen center" hidden>
+    <div class="card narrow">
+      <div class="hero-emoji" aria-hidden="true">🙉</div>
+      <p class="lead" id="blocked-title"></p>
+      <div id="blocked-details"></div>
+      <div class="row">
+        <button id="blocked-retry" class="btn secondary big" data-t="blocked.retry"></button>
+        <button id="blocked-touch" class="btn primary big" data-t="mic.useScreen"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- E3 — Carte des leçons -->
+  <section id="screen-map" class="screen" hidden>
+    <header class="topbar">
+      <div id="map-hello" class="hello"></div>
+      <div class="stats">
+        <span class="stat" id="map-stars"></span>
+        <span class="stat" id="map-streak"></span>
+      </div>
+      <button id="map-gear" class="icon-btn gear" aria-label=""><span>⚙</span></button>
+    </header>
+    <div id="map-scroll" class="map-scroll">
+      <div id="map-path" class="map-path">
+        <svg id="map-lines" class="map-lines" aria-hidden="true"></svg>
+      </div>
+    </div>
+    <footer id="map-footer" class="map-footer"></footer>
+  </section>
+
+  <!-- E4 — Leçon -->
+  <section id="screen-lesson" class="screen lesson" hidden>
+    <header class="topbar lesson-bar">
+      <button id="lesson-quit" class="icon-btn" aria-label="">✕</button>
+      <div class="progress" aria-hidden="true"><div id="lesson-progress-fill" class="progress-fill"></div></div>
+      <span id="lesson-progress-text" class="progress-text"></span>
+      <span id="lesson-combo" class="combo" aria-live="polite"></span>
+      <button id="lesson-ear" class="ear" aria-label="">
+        <span id="ear-icon" class="ear-icon">👂</span>
+        <span class="ear-level"><span id="ear-level-fill"></span></span>
+        <span id="ear-note" class="ear-note"></span>
+      </button>
+      <button id="lesson-speak" class="icon-btn" aria-label="" hidden>🗣️</button>
+    </header>
+    <div id="lesson-banner" class="banner" hidden>
+      <span data-t="lesson.micStopped"></span>
+      <button id="banner-retry" class="btn small secondary" data-t="blocked.retry"></button>
+      <button id="banner-touch" class="btn small primary" data-t="mic.useScreen"></button>
+    </div>
+    <main id="lesson-stage" class="stage"></main>
+    <div id="lesson-keyboard" class="keyboard"></div>
+    <div id="lesson-praise" class="praise" aria-live="polite"></div>
+  </section>
+
+  <!-- E5 — Bravo ! -->
+  <section id="screen-bravo" class="screen center" hidden>
+    <div id="confetti" class="confetti" aria-hidden="true"></div>
+    <div class="card narrow bravo">
+      <h1 id="bravo-title"></h1>
+      <div id="bravo-stars" class="bravo-stars"></div>
+      <p id="bravo-message" class="lead"></p>
+      <p id="bravo-record" class="record" hidden data-t="bravo.record"></p>
+      <p id="bravo-done"></p>
+      <p id="bravo-unlocked" class="unlocked"></p>
+      <div class="row">
+        <button id="bravo-replay" class="btn secondary big" data-t="bravo.replay"></button>
+        <button id="bravo-next" class="btn primary big" data-t="bravo.next"></button>
+      </div>
+      <button id="bravo-map" class="btn link" data-t="bravo.map"></button>
+    </div>
+  </section>
+
+  <!-- E6 — Coin des parents -->
+  <section id="screen-parents" class="screen" hidden>
+    <header class="topbar">
+      <button id="parents-back" class="btn small secondary" data-t="parents.back"></button>
+      <h2 class="bar-title" data-t="parents.title"></h2>
+    </header>
+    <div class="parents">
+      <p id="parents-storage" class="warn" hidden data-t="parents.storageWarn"></p>
+      <form id="parents-name-form" class="setting">
+        <label for="parents-name" data-t="parents.name"></label>
+        <div class="row">
+          <input id="parents-name" class="name-input small" type="text" maxlength="20" autocapitalize="words">
+          <button class="btn secondary" type="submit" data-t="parents.save"></button>
+        </div>
+      </form>
+      <div class="setting">
+        <span data-t="parents.input"></span>
+        <div class="row segmented">
+          <button id="parents-mic" class="btn" data-t="parents.inputMic"></button>
+          <button id="parents-touch" class="btn" data-t="parents.inputTouch"></button>
+        </div>
+      </div>
+      <div class="setting">
+        <button id="parents-redo-mic" class="btn secondary" data-t="parents.redoMic"></button>
+        <p id="parents-tuning" class="muted"></p>
+      </div>
+      <label class="setting toggle" id="parents-voice-row">
+        <input id="parents-voice" type="checkbox"><span data-t="parents.voice"></span>
+      </label>
+      <label class="setting toggle">
+        <input id="parents-unlock" type="checkbox"><span data-t="parents.unlockAll"></span>
+      </label>
+      <div class="setting">
+        <button id="parents-reset" class="btn danger" data-t="parents.reset"></button>
+      </div>
+      <p class="muted" data-t="parents.debug"></p>
+    </div>
+  </section>
+
+  <!-- Fenêtres superposées -->
+  <div id="modal" class="modal" hidden>
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <div id="modal-body"></div>
+      <div id="modal-actions" class="row"></div>
+    </div>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <button id="resume-veil" class="veil" hidden data-t="lesson.resume"></button>
+  <pre id="debug" class="debug" hidden></pre>
+
+  <script src="js/notes.js"></script>
+  <script src="js/strings.js"></script>
+  <script src="js/curriculum.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/synth.js"></script>
+  <script src="js/pitch.js"></script>
+  <script src="js/voice.js"></script>
+  <script src="js/mic.js"></script>
+  <script src="js/keyboard.js"></script>
+  <script src="js/illus.js"></script>
+  <script src="js/lesson.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
