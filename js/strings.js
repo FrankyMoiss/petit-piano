@@ -84,6 +84,8 @@
       'lesson.quitNo': 'Non, je continue',
       'lesson.resume': 'Touche l\'écran pour continuer ▶',
       'lesson.micStopped': 'Le micro s\'est arrêté.',
+      'lesson.touchMode': 'Mode écran : tu joues en touchant le téléphone.',
+      'lesson.useMic': '🎹 Jouer avec le piano',
       'lesson.micIndicator': 'J\'écoute',
       'lesson.touchIndicator': 'Mode écran : touche pour réessayer le micro',
       'lesson.micRetryFailed': 'Le micro ne répond pas. On continue avec l\'écran 👆',

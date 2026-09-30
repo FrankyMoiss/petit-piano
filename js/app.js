@@ -111,7 +111,17 @@
   /** Micro prêt ? Résout true (micro), false (mode écran) ; rejette { kind } si refusé. */
   function ensureMic() {
     var dev = store.device();
-    if (dev.input !== 'mic') return Promise.resolve(false);
+    if (dev.input !== 'mic') {
+      // Mode écran choisi par un parent (coin parents ou « sans micro » au départ) : on s'y tient.
+      // Mode écran pris en secours pendant une leçon : on retente le vrai piano à chaque nouvelle leçon.
+      if (dev.touchByParent || !dev.calibrated) return Promise.resolve(false);
+      if (PP.mic.isRunning()) { store.setDevice({ input: 'mic' }); return Promise.resolve(true); }
+      return PP.mic.start(dev.noiseFloor).then(function () {
+        store.setDevice({ input: 'mic' });
+        PP.mic.setTuning(dev.tuningCents);
+        return true;
+      }, function () { return false; });
+    }
     if (PP.mic.isRunning()) return Promise.resolve(true);
     return PP.mic.start(dev.noiseFloor).then(function () {
       PP.mic.setTuning(dev.tuningCents);
@@ -144,7 +154,7 @@
   }
 
   function useTouch() {
-    store.setDevice({ input: 'touch' });
+    store.setDevice({ input: 'touch', touchByParent: true });
     PP.mic.stop();
     continueAfterMic();
   }
@@ -389,6 +399,8 @@
     ear.classList.toggle('touch', !mic);
     ear.setAttribute('aria-label', mic ? t('lesson.micIndicator') : t('lesson.touchIndicator'));
     $('ear-icon').textContent = mic ? '👂' : '👆';
+    // Bandeau bien visible en mode écran, pour revenir au vrai piano d'un geste
+    $('lesson-touchbar').hidden = mic || !$('lesson-banner').hidden;
     if (!mic) $('ear-level-fill').style.height = '0';
   }
 
@@ -567,6 +579,7 @@
       tryMicInLesson();
     });
     $('banner-retry').addEventListener('click', tryMicInLesson);
+    $('touchbar-mic').addEventListener('click', tryMicInLesson);
     $('banner-touch').addEventListener('click', function () {
       store.setDevice({ input: 'touch' });
       $('lesson-banner').hidden = true;
@@ -601,7 +614,7 @@
   function tryMicInLesson() {
     PP.audio.ensure();
     PP.mic.start(store.device().noiseFloor).then(function () {
-      store.setDevice({ input: 'mic' });
+      store.setDevice({ input: 'mic', touchByParent: false });
       PP.mic.setTuning(store.device().tuningCents);
       $('lesson-banner').hidden = true;
       PP.lesson.setInput('mic');
@@ -898,12 +911,12 @@
       PP.ui.toast('✓');
     });
     $('parents-mic').addEventListener('click', function () {
-      store.setDevice({ input: 'mic' });
+      store.setDevice({ input: 'mic', touchByParent: false });
       if (!store.device().calibrated) { showMicSetup(); return; }
       showParents();
     });
     $('parents-touch').addEventListener('click', function () {
-      store.setDevice({ input: 'touch' });
+      store.setDevice({ input: 'touch', touchByParent: true });
       PP.mic.stop();
       showParents();
     });

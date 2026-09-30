@@ -14,7 +14,7 @@
     return {
       version: 2,
       activeProfile: null,
-      device: { input: 'mic', noiseFloor: null, tuningCents: 0, calibrated: false },   // propre au téléphone, jamais synchronisé
+      device: { input: 'mic', touchByParent: false, noiseFloor: null, tuningCents: 0, calibrated: false },   // propre au téléphone, jamais synchronisé
       profiles: {},
       sync: syncDefaults()                                                             // propre au téléphone (§9.7)
     };
