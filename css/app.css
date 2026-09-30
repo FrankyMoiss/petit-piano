@@ -199,6 +199,8 @@ strong { font-weight: 700; }
   display: none; align-items: center; justify-content: center;
   box-shadow: 0 1px 4px rgba(31, 26, 61, .25);
 }
+/* main gauche : liseré pointillé sous le numéro de doigt (DESIGN §10.3d) */
+.bubble.left .finger { border-bottom: 3px dotted var(--ink); }
 .bubble.current { --scale: 1.35; box-shadow: 0 0 0 4px #fff, 0 8px 18px rgba(31, 26, 61, .28); z-index: 1; }
 .bubble.current .finger { display: flex; }
 .bubble.demo-on { --scale: 1.2; box-shadow: 0 0 0 4px var(--star); }
@@ -294,6 +296,26 @@ strong { font-weight: 700; }
   0%, 100% { box-shadow: 0 0 0 0 rgba(108, 77, 246, .45), var(--shadow); }
   50% { box-shadow: 0 0 0 14px rgba(108, 77, 246, 0), var(--shadow); }
 }
+
+.level-band {
+  position: absolute; left: 16px; right: 16px; transform: translateY(-50%);
+  height: 64px; border-radius: 28px; margin: 0;
+  background: var(--surface); border: 2px solid var(--primary); box-shadow: var(--shadow);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; line-height: 1.15; padding: 0 12px; z-index: 1;
+}
+.level-band .band-title { font-size: 20px; font-weight: 700; }
+.level-band .band-sub { font-size: 16px; font-weight: 600; color: var(--ink-soft); }
+.level-band.wide { height: 56px; flex-direction: row; gap: 8px; }
+.level-band.wide .band-sub::before { content: "· "; }
+.level-band.locked { border-color: var(--locked); background: #F1EEF7; box-shadow: none; }
+.level-band.locked .band-title { color: var(--ink-soft); }
+.level-band .band-new {
+  position: absolute; top: -12px; right: 18px;
+  background: var(--star); color: var(--ink); font-size: 14px; font-weight: 700;
+  padding: 2px 10px; border-radius: 12px;
+}
+.level-band.wide .band-new { position: static; margin-left: 12px; }
 
 .map-footer {
   display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;

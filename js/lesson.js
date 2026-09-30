@@ -161,7 +161,7 @@
       var lyrics = step.lyrics ? step.lyrics.split('|') : null;
       S.bubbles = S.seq.map(function (n, i) {
         var cell = el('div', 'bubble-cell');
-        var bub = PP.ui.noteBubble(n.pc, 'bubble');
+        var bub = PP.ui.noteBubble(n.pc, 'bubble' + (n.hand === 'L' ? ' left' : ''));
         bub.appendChild(el('span', 'finger', (n.hand === 'L' ? 'g' : '') + (n.finger || '')));
         cell.appendChild(bub);
         if (lyrics) cell.appendChild(el('span', 'lyric', PP.ui.escape(lyrics[i])));
@@ -202,9 +202,17 @@
       kb.setMarks({ keys: [], groups: '' });
       return;
     }
-    var key = n.hand === 'L' ? 'lesson.playLeftThumb' : n.finger ? 'lesson.playFinger' : 'lesson.play';
+    var key = promptKey(n, S.seq);
     setText('.prompt', t(key, { note: noteName(n.pc), finger: n.finger }));
     setText('.feedback', '');
+  }
+
+  /** Consigne sous les bulles (DESIGN §10.3d) : « gauche »/« droit » seulement quand les deux mains se mélangent. */
+  function promptKey(n, seq) {
+    if (n.hand === 'L') return n.finger > 1 ? 'lesson.playLeftFinger' : 'lesson.playLeftThumb';
+    if (!n.finger) return 'lesson.play';
+    var mixed = seq.some(function (m) { return m.hand === 'L'; });
+    return mixed ? 'lesson.playRightFinger' : 'lesson.playFinger';
   }
 
   /** Fait défiler la rangée pour garder la bulle i au tiers gauche. */

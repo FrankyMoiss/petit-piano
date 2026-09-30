@@ -73,6 +73,20 @@
       fingerDot(140, 20, 4, C[5].color) + fingerDot(162, 36, 5, C[7].color)
     ),
 
+    // Main gauche (miroir de fingerNumbers) : pouce à droite, numéros lisibles, mot « gauche » sur la paume
+    leftHand: svg(
+      '<g transform="translate(240,0) scale(-1,1)">' +
+        '<rect x="78" y="86" width="92" height="64" rx="26" fill="' + SKIN + '" stroke="' + SKIN_D + '" stroke-width="2"/>' +
+        '<rect x="46" y="84" width="24" height="52" rx="12" transform="rotate(-38 58 110)" fill="' + SKIN + '" stroke="' + SKIN_D + '" stroke-width="2"/>' +
+        [[86, 34, 58], [108, 22, 70], [130, 28, 64], [152, 44, 50]].map(function (f) {
+          return '<rect x="' + f[0] + '" y="' + f[1] + '" width="20" height="' + f[2] + '" rx="10" fill="' + SKIN + '" stroke="' + SKIN_D + '" stroke-width="2"/>';
+        }).join('') +
+      '</g>' +
+      fingerDot(240 - 46, 84, 1, C[0].color) + fingerDot(240 - 96, 26, 2, C[2].color) + fingerDot(240 - 118, 14, 3, C[4].color) +
+      fingerDot(240 - 140, 20, 4, C[5].color) + fingerDot(240 - 162, 36, 5, C[7].color) +
+      '<text x="116" y="128" text-anchor="middle" font-size="15" font-weight="700" fill="' + SOFT + '">gauche</text>'
+    ),
+
     // Doigt qui se relève entre deux frappes de la même touche
     repeatNote: svg(
       keys(60, 100, 40, 54, ['Do', 'Ré', 'Mi'], [C[0].color, null, null]) +

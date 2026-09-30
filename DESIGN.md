@@ -650,7 +650,7 @@ Champs d'une étape :
 | `type` | tous | oui | `"info"` \| `"find"` \| `"sequence"` |
 | `text` | tous | oui | texte affiché (≤ 2 lignes). `**gras**` autorisé, `{prenom}` remplacé |
 | `say` | tous | oui (v1 : utilisé si voix activée) | texte parlé |
-| `illus` | info | non | id d'illustration SVG : `posture`, `bubbleHand`, `fingerNumbers`, `repeatNote`, `cPosition`, `thumbUnder`, `leftThumb` |
+| `illus` | info | non | id d'illustration SVG : `posture`, `bubbleHand`, `fingerNumbers`, `repeatNote`, `cPosition`, `thumbUnder`, `leftThumb`, `leftHand` (Niveau 2) |
 | `keys` | tous | non | touches précises à mettre en évidence, format `seq` (doigt optionnel) ; hors de la plage affichée → ignorées sans erreur |
 | `groups` | info, find | non | `"2"`, `"3"` ou `"2,3"` : surligne les groupes de touches noires visibles (surlignage neutre, pas de couleur de note) |
 | `accept` | find | oui | liste de classes de hauteur en noms anglais internes (`"C"`, `"C#"`…) ; l'affichage utilise toujours le solfège (`PP.NOTES[pc].fr`). Les tableaux du §4 écrivent parfois Do♯ etc. pour la lisibilité : c'est la même chose |
@@ -1156,3 +1156,385 @@ Relecture exigeante : pédagogie (9 ans, débutant complet), UX tablette/télép
 - **Leçon 8 (passage du pouce)** : c'est le saut technique le plus dur du niveau et la leçon a 9 étapes sans chanson. Gardée telle quelle (le mode « attente » laisse le temps, et le doigté n'est de toute façon pas vérifiable au micro), mais si l'enfant bloque, la scinder en « La et Si » + « La gamme » est la 1re piste.
 - **Doigtés non vérifiables** : le micro ne voit pas les doigts ; l'appli les montre seulement. Le parent peut jeter un œil ; rien à faire techniquement.
 - **Harmonique de quinte** (YIN qui renvoie parfois la 3e harmonique sur les notes graves) : le seuil YIN 0,15 + premier creux la rend rare ; à surveiller sur Sol3.
+
+---
+
+## 10. Niveau 2 — « Les deux mains » 🙌
+
+> **Révisé : musiques plus modernes.** Le parent trouve les comptines françaises (Au clair de la lune, Frère Jacques, Ah ! vous dirai-je maman…) « ringardes ». Le Niveau 2 garde **le même squelette pédagogique** (main gauche seule → deux mains chacune leur tour → nouvelle position → premières touches noires) mais avec des airs qu'un garçon de 9 ans a envie de jouer : jazz, musique de jeu vidéo, Beethoven, Grieg. **Uniquement du domaine public** (compositeur mort depuis plus de 70 ans, ou air traditionnel) — aucune musique de film, de jeu, de télé ou de pop.
+>
+> Le Niveau 2 = **9 leçons `l10` → `l18`**, ajoutées **après `l09`** dans `CURRICULA.grand.lessons`. **Rien ne change dans `l01`–`l09`** (ids, étapes, textes) : la progression est stockée par id et synchronisée. `l10` s'ouvre dès que `l09` a ≥ 1 étoile (règle §6.4, inchangée) → le Niveau 2 apparaît **ouvert** dès la mise à jour, sans migration. Le Niveau 2 n'a jamais été publié : l'ordre et les titres de `l10`–`l18` peuvent encore changer librement (aucune étoile stockée sur ces ids).
+
+### 10.0 Choix pédagogiques
+
+1. **La main gauche seule d'abord** (L10–L11), en **position de Do gauche** (petit doigt `g5` sur Do3 … pouce `g1` sur Sol3), sur ***When the Saints Go Marching In*** : un air de jazz de La Nouvelle-Orléans qui tient **entièrement dans 5 notes Do–Sol** → la seule nouveauté est la main.
+2. **Les deux mains chacune leur tour** en **position du Do du milieu** (L12 exercices, L13 *Joyeux anniversaire*) : les **deux pouces partagent le Do4** ; main droite Do4–Sol4, main gauche Fa3–Do4 (`g1` Do4, `g2` Si3, `g3` La3, `g4` Sol3, `g5` Fa3). On ne joue jamais deux notes à la fois (le micro n'en détecte qu'une).
+3. **Les mains côte à côte** (L14–L15, *Korobeïniki*, l'air russe devenu la musique d'un célèbre jeu vidéo de briques) : le pouce gauche **garde** le Do4 (`g3` La3, `g2` Si3, `g1` Do4) et la main droite **glisse d'une touche**, pouce sur Ré4 (`1` Ré4 … `5` La4). C'est le seul déplacement nouveau, entraîné à part (L14 étapes 2–3). Tout l'air (La3–La4) se joue sans jamais bouger les mains. La même installation sert à nouveau en L18.
+4. **Une nouvelle position de main droite** : la **position de Sol** (L16, *Jingle Bells*, touches blanches seulement) — inchangée.
+5. **Les premières touches noires en musique** (L17–L18) :
+   - L17 *La Lettre à Élise* (Beethoven) : le **Ré♯**, joué par le doigt 4 dans la **position de La** (pouce La4 … petit doigt Mi5). Le célèbre balancement Mi–Ré♯–Mi–Ré♯ = doigts 5–4–5–4, exactement le doigté des pianistes.
+   - L18 *Dans l'antre du roi de la montagne* (Grieg), grand final : mains côte à côte (comme L14–L15) + **deux** touches noires, Ré♯ (doigt 2 droit) et **La♯** (doigt 2 gauche). Le morceau accélère : dernière étape rejouée avec une démo plus rapide.
+   - *Pourquoi La♯ et pas Si♭* : l'appli affiche toujours les touches noires en dièses (`PP.NOTES[10].fr = 'La♯'`) ; les textes disent donc « La♯ » pour rester cohérents avec les bulles. Aucune notion de bémol au Niveau 2.
+6. **Versions simplifiées mais reconnaissables** : on garde le thème principal, quelques phrases, dans une position de 5 doigts (+ relais entre les mains). Deux simplifications assumées : (a) *Lettre à Élise* : la réponse « Do Mi La Si » devient « Mi La Si » (le Do grave ferait 10 touches blanches, trop pour un iPhone) et la phrase « Mi Sol♯ Si Do » est omise ; (b) *Roi de la montagne* : seulement les 8 premières mesures (le thème + sa réponse), pas la partie en majeur.
+7. **Domaine public** : *When the Saints* (spiritual traditionnel afro-américain, fin XIXe s., popularisé par le jazz de La Nouvelle-Orléans ; on n'utilise que l'air, jamais un enregistrement ou un arrangement moderne) ; *Joyeux anniversaire* (*Good Morning to All*, 1893) ; *Korobeïniki* (chanson populaire russe, poème de Nekrassov 1861, air populaire fixé fin XIXe s. — domaine public quelle que soit l'attribution ; **seulement l'air traditionnel**, jamais un arrangement de jeu ; le nom du jeu **n'apparaît nulle part**, on dit « un célèbre jeu vidéo de briques ») ; *Jingle Bells* (Pierpont 1857, paroles anglaises d'origine, pas « Vive le vent ») ; Beethoven († 1827) ; Grieg († 1907).
+8. Même rythme que le Niveau 1 : 6 à 9 étapes, phrases séparées puis morceau entier, textes ≤ 15 mots, le `say` garde la version longue. Paroles seulement là où chaque syllabe tombe sûrement sur une note (sinon pas de `lyrics` : le champ est optionnel).
+9. Le rythme n'est pas vérifié (l'appli attend la bonne note) : les durées ne servent qu'à la démo. Les durées écrites reproduisent le rythme réel, simplifié.
+
+Notation (rappel §4) : `NOTE-doigt:durée` ; doigt sans préfixe = main droite ; `g1`…`g5` = main gauche (1 = pouce, 5 = petit doigt). La validation ignore l'octave : l'octave sert à l'affichage et à la démo.
+
+### 10.1 Vue d'ensemble
+
+| id | num | Titre | Emoji | Mains / position | Morceau | Clavier tablette | Clavier téléphone (blanches) |
+|----|-----|-------|-------|------------------|---------|------------------|------------------------------|
+| l10 | 10 | La main gauche | 🤚 | MG, position de Do (Do3–Sol3) | When the Saints (1re ligne) | Do3–Do5 | **Do3–Do4** (8) |
+| l11 | 11 | When the Saints | 🎺 | MG, position de Do | When the Saints (en entier) | Do3–Do5 | **Do3–Do4** (8) |
+| l12 | 12 | Les deux pouces sur Do | 🪞 | MD + MG, Do du milieu | — (exercices) | Do3–Do5 | **Fa3–Sol4** (9) |
+| l13 | 13 | Joyeux anniversaire | 🎂 | idem | Joyeux anniversaire (en Do) | Do3–Do5 | **Fa3–Sol4** (9) |
+| l14 | 14 | L'air des briques | 🧱 | MG La3–Do4 + MD Ré4–La4 (côte à côte) | Korobeïniki (1re partie) | Do3–Do5 | **Sol3–La4** (9) |
+| l15 | 15 | Korobeïniki en entier | 🕹️ | idem | Korobeïniki (1re + 2e partie) | Do3–Do5 | **Sol3–La4** (9) |
+| l16 | 16 | Jingle Bells | 🛷 | MD, position de Sol (Sol4–Ré5) | Jingle Bells (refrain) | Do4–Mi5 | **Do4–Ré5** (9) |
+| l17 | 17 | La Lettre à Élise | 💌 | MD position de La (La4–Mi5) + pouce gauche Mi4 | Lettre à Élise (thème) | Do4–Sol5 | **Mi4–Mi5** (8) |
+| l18 | 18 | Le roi de la montagne | 👹 | côte à côte (comme l14) + Ré♯ et La♯ | Dans l'antre du roi de la montagne | Do3–Do5 | **Sol3–La4** (9) |
+
+Données `keyboard` exactes :
+```js
+var LH_RANGE   = { from: 'C3', to: 'C5', phone: { from: 'C3', to: 'C4' } };   // l10, l11
+var MID_RANGE  = { from: 'C3', to: 'C5', phone: { from: 'F3', to: 'G4' } };   // l12, l13
+var SIDE_RANGE = { from: 'C3', to: 'C5', phone: { from: 'G3', to: 'A4' } };   // l14, l15, l18
+// l16 : { from: 'C4', to: 'E5', phone: { from: 'C4', to: 'D5' } }
+// l17 : { from: 'C4', to: 'G5', phone: { from: 'E4', to: 'E5' } }
+```
+Toutes les notes **et** toutes les touches `keys` de chaque leçon sont dans la plage téléphone (≤ 9 blanches). Touches noires utilisées : Ré♯5 (l17, entre Ré5 et Mi5), Ré♯4 et La♯3 (l18, dans Sol3–La4).
+
+Constantes (en tête de `curriculum.js`, à côté de celles du Niveau 1 — **ne pas modifier** les constantes existantes ; **supprimer** les constantes Niveau 2 devenues inutiles : `LH_ACL_*`, `LH_FJ_*`, `LH_ODE_*`, `ACL_LY_1`, `AVD_*`, `ACLM_*`, `POSITION_RE`, `ACL_RE`, `FJ_RE`, `ODE_RE_*`) :
+```js
+// ---- Main gauche, position de Do (Do3–Sol3) ----
+var LH_POSITION_DO = 'C3-g5 D3-g4 E3-g3 F3-g2 G3-g1';
+
+// When the Saints Go Marching In (en Do, main gauche)
+var SAINTS_OH   = 'C3-g5 E3-g3 F3-g2 G3-g1:4';                                            // Oh when the saints
+var SAINTS_GO   = 'C3-g5 E3-g3 F3-g2 G3-g1:2 E3-g3:2 C3-g5:2 E3-g3:2 D3-g4:4';            // Oh when the saints go marching in
+var SAINTS_A    = [SAINTS_OH, SAINTS_OH, SAINTS_GO].join(' ');                            // 16 notes
+var SAINTS_LORD = 'E3-g3:2 E3-g3 D3-g4 C3-g5:3 C3-g5 E3-g3:2 G3-g1:2 G3-g1 F3-g2:3';     // Oh Lord, I want to be in that number (9)
+var SAINTS_END  = 'E3-g3 F3-g2 G3-g1:2 E3-g3:2 C3-g5:2 D3-g4:2 C3-g5:4';                  // when the saints go marching in (7)
+var SAINTS_OH_LY  = 'Oh|when|the|saints';
+var SAINTS_GO_LY  = 'Oh|when|the|saints|go|mar|ching|in';
+var SAINTS_END_LY = 'when|the|saints|go|mar|ching|in';
+
+// ---- Position du Do du milieu (deux pouces sur Do4) ----
+var MID_RH = 'C4-1 D4-2 E4-3 F4-4 G4-5';
+var MID_LH = 'C4-g1 B3-g2 A3-g3 G3-g4 F3-g5';
+
+// Joyeux anniversaire (en Do) — inchangé par rapport à la 1re version du §10
+var JA_1 = 'G3-g4:0.75 G3-g4:0.25 A3-g3 G3-g4 C4-1 B3-g2:2';
+var JA_2 = 'G3-g4:0.75 G3-g4:0.25 A3-g3 G3-g4 D4-2 C4-1:2';
+var JA_3 = 'G3-g4:0.75 G3-g4:0.25 G4-5 E4-3 C4-1 B3-g2 A3-g3:2';
+var JA_4 = 'F4-4:0.75 F4-4:0.25 E4-3 C4-1 D4-2 C4-1:2';
+var JA_LY = 'Jo|yeux|an|ni|ver|saire';
+var JA_3_LY = 'Jo|yeux|an|ni|ver|saire|🎂';
+
+// ---- Mains côte à côte : pouce gauche Do4, pouce droit Ré4 ----
+var SIDE_HANDS = 'A3-g3 B3-g2 C4-g1 D4-1 E4-2';
+var SIDE_ALL   = 'A3-g3 B3-g2 C4-g1 D4-1 E4-2 F4-3 G4-4 A4-5';
+
+// Korobeïniki (en La mineur)
+var KORO_A1 = 'E4-2 B3-g2:0.5 C4-g1:0.5 D4-1 C4-g1:0.5 B3-g2:0.5 A3-g3 A3-g3:0.5 C4-g1:0.5 E4-2 D4-1:0.5 C4-g1:0.5'; // 12
+var KORO_A2 = 'B3-g2:1.5 C4-g1:0.5 D4-1 E4-2 C4-g1 A3-g3 A3-g3:2';                                                   // 7
+var KORO_A  = KORO_A1 + ' ' + KORO_A2;                                                                                 // 19
+var KORO_B1 = 'D4-1:1.5 F4-3:0.5 A4-5 G4-4:0.5 F4-3:0.5 E4-2:1.5 C4-g1:0.5 E4-2 D4-1:0.5 C4-g1:0.5';                 // 10
+var KORO_B2 = 'B3-g2 B3-g2:0.5 C4-g1:0.5 D4-1 E4-2 C4-g1 A3-g3 A3-g3:2';                                              // 8
+var KORO_B  = KORO_B1 + ' ' + KORO_B2;                                                                                 // 18
+
+// ---- Jingle Bells (refrain, en Sol, position de Sol) — inchangé ----
+var POSITION_SOL = 'G4-1 A4-2 B4-3 C5-4 D5-5';
+var JB_1 = 'B4-3 B4-3 B4-3:2 B4-3 B4-3 B4-3:2 B4-3 D5-5 G4-1:1.5 A4-2:0.5 B4-3:4';
+var JB_1_LY = 'Jin|gle|bells|jin|gle|bells|jin|gle|all|the|way';
+var JB_FUN = 'C5-4 C5-4 C5-4:1.5 C5-4:0.5 C5-4 B4-3 B4-3 B4-3:0.5 B4-3:0.5';
+var JB_FUN_LY = 'Oh|what|fun|it|is|to|ride|in|a';
+var JB_2 = JB_FUN + ' B4-3 A4-2 A4-2 B4-3 A4-2:2 D5-5:2';
+var JB_2_LY = JB_FUN_LY + '|one|horse|o|pen|sleigh|hey';
+var JB_3 = JB_FUN + ' D5-5 D5-5 C5-4 A4-2 G4-1:4';
+var JB_3_LY = JB_FUN_LY + '|one|horse|o|pen|sleigh';
+
+// ---- La Lettre à Élise (en La mineur, position de La, Ré♯ au doigt 4) ----
+var POSITION_LA = 'A4-1 B4-2 C5-3 D#5-4 E5-5';
+var ELISE_BALANCE = 'E5-5 D#5-4 E5-5 D#5-4 E5-5:2';                                                                  // 5
+var ELISE_M  = 'E5-5:0.5 D#5-4:0.5 E5-5:0.5 D#5-4:0.5 E5-5:0.5 B4-2:0.5 D5-4:0.5 C5-3:0.5 A4-1:1.5';              // 9
+var ELISE_R1 = 'E4-g1:0.5 A4-1:0.5 B4-2:1.5';                                                                        // 3
+var ELISE_R2 = 'E4-g1:0.5 C5-3:0.5 B4-2:0.5 A4-1:1.5';                                                               // 4
+var ELISE_ALL = [ELISE_M, ELISE_R1, ELISE_M, ELISE_R1, ELISE_R2].join(' ');                                         // 28
+
+// ---- Dans l'antre du roi de la montagne (en La mineur, mains côte à côte) ----
+var TROLL_1 = 'A3-g3 B3-g2 C4-g1 D4-1 E4-2 C4-g1 E4-2:2';                                                            // 7
+var TROLL_2 = 'D#4-2 B3-g2 D#4-2:2 D4-1 A#3-g2 D4-1:2';                                                              // 6
+var TROLL_A = TROLL_1 + ' ' + TROLL_2;                                                                               // 13
+var TROLL_B = 'A3-g3 B3-g2 C4-g1 D4-1 E4-2 C4-g1 E4-2 A4-5 G4-4 E4-2 C4-g1 E4-2 G4-4:2';                           // 13
+var TROLL_ALL = TROLL_A + ' ' + TROLL_B;                                                                             // 26
+```
+
+### 10.2 Les leçons, étape par étape
+
+#### Leçon 10 — La main gauche 🤚
+Clavier : `LH_RANGE` (téléphone Do3–Do4). *Objectif : numéros des doigts de la main gauche, position de Do gauche, premier air à gauche.*
+
+| # | Type | Texte affiché | Texte parlé (`say`) | Détails |
+|---|------|---------------|---------------------|---------|
+| 1 | info | Ta main **gauche** aussi a des numéros : 1 = pouce … 5 = petit doigt. | Nouveau niveau, {prenom} ! On réveille ta main gauche. Elle aussi a des numéros : le pouce, c'est 1, le petit doigt, c'est 5. | illus `leftHand` |
+| 2 | info | Petit doigt gauche sur le **Do grave**, pouce sur Sol : la position de Do, à gauche ! | Pose ta main gauche sur le Do grave, un Do plus bas que le Do du milieu. Petit doigt sur Do, pouce sur Sol : c'est la position de Do, à gauche. | keys `LH_POSITION_DO` |
+| 3 | find | Petit doigt gauche (5) sur le Do grave. Joue-le 3 fois. | Petit doigt gauche sur le Do grave. Joue-le trois fois. | accept `["C"]`, count 3, keys `C3-g5` ; hint « Le Do grave : un Do plus à gauche que le Do du milieu. » |
+| 4 | sequence | Monte : Do Ré Mi Fa Sol, du petit doigt au pouce. | On monte avec la main gauche : Do, Ré, Mi, Fa, Sol. Du petit doigt jusqu'au pouce. | `C3-g5 D3-g4 E3-g3 F3-g2 G3-g1` |
+| 5 | sequence | Redescends : Sol Fa Mi Ré Do. | Et on redescend, du pouce au petit doigt. | `G3-g1 F3-g2 E3-g3 D3-g4 C3-g5:2` |
+| 6 | sequence (song) | Du jazz ! Do, Mi, Fa, Sol… deux fois. 🎺 | Un air de jazz de La Nouvelle-Orléans : When the Saints ! Do, Mi, Fa, Sol : petit doigt, doigt trois, doigt deux, pouce. Deux fois. Écoute d'abord ! | `SAINTS_OH + ' ' + SAINTS_OH` (8) · lyrics `SAINTS_OH_LY + '\|' + SAINTS_OH_LY` · title « When the Saints » |
+| 7 | sequence (song) | Toute la 1re ligne ! 🎺 | Et maintenant, toute la première ligne. À la fin, ça redescend : Mi, Do, Mi, Ré. | `SAINTS_A` (16) · lyrics `[SAINTS_OH_LY, SAINTS_OH_LY, SAINTS_GO_LY].join('\|')` |
+
+`doneText` : « Ta main gauche joue du jazz ! 🤚 »
+
+#### Leçon 11 — When the Saints 🎺
+Clavier : `LH_RANGE`. *Objectif : fluidité de la main gauche ; tout l'air (32 notes) dans la même position.*
+
+| # | Type | Texte affiché | Texte parlé | Détails |
+|---|------|---------------|-------------|---------|
+| 1 | info | La suite de « When the Saints », toujours à gauche ! | Aujourd'hui, toute la chanson When the Saints, avec la main gauche. Petit doigt sur le Do grave ! | keys `LH_POSITION_DO` |
+| 2 | sequence (song) | La 1re ligne. Tu la connais ! | D'abord la première ligne. Tu la connais déjà ! | `SAINTS_A` (16) · lyrics comme l10/7 · title « When the Saints » |
+| 3 | sequence (song) | Mi Mi Ré Do… puis ça monte jusqu'au Sol ! | La deuxième ligne : Mi, Mi, Ré, Do, puis ça monte jusqu'au Sol, avec le pouce, et on finit sur Fa. | `SAINTS_LORD` (9) |
+| 4 | sequence (song) | La fin : Mi Fa Sol, Mi Do, Ré Do. | La fin : Mi, Fa, Sol, puis Mi, Do, Ré, et Do avec le petit doigt. | `SAINTS_END` (7) · lyrics `SAINTS_END_LY` |
+| 5 | sequence (song) | La 2e ligne et la fin, à la suite ! | La deuxième ligne et la fin, à la suite. | `SAINTS_LORD + ' ' + SAINTS_END` (16) |
+| 6 | sequence (song) | Toute la chanson ! 🎺🎷 | Et maintenant, toute la chanson, comme un vrai jazzman ! | `SAINTS_A + ' ' + SAINTS_LORD + ' ' + SAINTS_END` (32) |
+
+`doneText` : « Tu joues du jazz à la main gauche ! 🎺 »
+
+#### Leçon 12 — Les deux pouces sur Do 🪞
+Clavier : `MID_RANGE` (téléphone Fa3–Sol4). **Inchangée** par rapport à la 1re version (déjà codée) : 7 étapes d'exercices, position du Do du milieu.
+
+| # | Type | Texte affiché | Texte parlé | Détails |
+|---|------|---------------|-------------|---------|
+| 1 | info | Nouvelle position : les **deux pouces** sur le Do du milieu ! | Nouvelle position ! Tes deux pouces se partagent le Do du milieu. La main droite part vers la droite, la main gauche vers la gauche. | keys `MID_RH` |
+| 2 | sequence | Main droite : Do Ré Mi Fa Sol ⬆️ | Main droite : Do, Ré, Mi, Fa, Sol. Tu connais ! | `C4-1 D4-2 E4-3 F4-4 G4-5:2` |
+| 3 | info | Main gauche : pouce sur Do, puis **Si, La, Sol, Fa** vers la gauche. | Main gauche maintenant : le pouce sur le même Do. Les autres doigts descendent vers la gauche : Si, La, Sol, Fa. | keys `MID_LH` |
+| 4 | sequence | Main gauche : Do Si La Sol Fa ⬇️ | Avec la main gauche : Do, Si, La, Sol, Fa. On descend ! | `C4-g1 B3-g2 A3-g3 G3-g4 F3-g5:2` |
+| 5 | sequence | Et remonte avec la main gauche ⬆️ | Et on remonte avec la main gauche, du petit doigt au pouce. | `F3-g5 G3-g4 A3-g3 B3-g2 C4-g1:2` |
+| 6 | sequence | Chacun son tour : 3 notes à droite, 3 à gauche ! | Chacun son tour : trois notes avec la main droite, puis trois avec la main gauche. | `C4-1 E4-3 G4-5 C4-g1 A3-g3 F3-g5:2` |
+| 7 | sequence | Du Fa grave au Sol : la main droite prend le relais ! | On monte du Fa grave jusqu'au Sol. La main gauche commence, et la main droite prend le relais sur le Do. | `F3-g5 G3-g4 A3-g3 B3-g2 C4-1 D4-2 E4-3 F4-4 G4-5:2` |
+
+`doneText` : « Tes deux mains jouent chacune leur tour ! 🪞 »
+
+#### Leçon 13 — Joyeux anniversaire 🎂
+Clavier : `MID_RANGE`. Position du Do du milieu. **Contenu identique à l'ancienne L15** (déjà codée), seuls `id`/`num` changent (`l13`, 13). *Tonalité de Do, départ sur Sol3 : Sol/La/Si à gauche, Do→Sol à droite. Nouveauté : le grand saut Sol3 → Sol4.*
+
+| # | Type | Texte affiché | Texte parlé | Détails |
+|---|------|---------------|-------------|---------|
+| 1 | info | La chanson des anniversaires, à deux mains ! 🎂 | Voici la chanson des anniversaires. Tu pourras la jouer pour toute la famille ! Deux pouces sur le Do du milieu. | keys `G3-g4 A3-g3 B3-g2 C4-1 D4-2 E4-3 F4-4 G4-5` |
+| 2 | sequence (song) | Sol Sol La Sol à gauche, puis Do et Si. | Joyeux anniversaire : Sol, Sol, La, Sol avec la main gauche, puis Do à droite et Si à gauche. Écoute d'abord ! | `JA_1` · lyrics `JA_LY` · title « Joyeux anniversaire » |
+| 3 | sequence (song) | Presque pareil, mais ça finit sur Ré puis Do. | Presque pareil, mais cette fois ça finit sur Ré, puis Do. | `JA_2` · lyrics `JA_LY` |
+| 4 | info | Le grand saut : le **Sol aigu**, avec le petit doigt droit ! | Attention, dans la phrase suivante il y a un grand saut : du Sol grave au Sol aigu, avec le petit doigt de la main droite. | keys `G3-g4 G4-5` |
+| 5 | sequence (song) | Le grand saut, puis ça redescend ! | Le grand saut, puis ça redescend doucement jusqu'au La. | `JA_3` · lyrics `JA_3_LY` |
+| 6 | sequence (song) | La dernière phrase : toute à la main droite. | La dernière phrase se joue toute avec la main droite. Fa avec le doigt quatre ! | `JA_4` · lyrics `JA_LY` |
+| 7 | sequence (song) | Toute la chanson ! 🎂 | Et maintenant, toute la chanson ! | `[JA_1, JA_2, JA_3, JA_4].join(' ')` (25) · lyrics `[JA_LY, JA_LY, JA_3_LY, JA_LY].join('\|')` |
+
+`doneText` : « Tu peux jouer Joyeux anniversaire à toute la famille ! 🎂 »
+
+#### Leçon 14 — L'air des briques 🧱
+Clavier : `SIDE_RANGE` (téléphone Sol3–La4). *Nouvelle installation : mains côte à côte. Korobeïniki, 1re partie (19 notes), en La mineur : La/Si/Do à gauche, Ré/Mi à droite — beaucoup d'allers-retours entre les mains, c'est le jeu.*
+
+| # | Type | Texte affiché | Texte parlé | Détails |
+|---|------|---------------|-------------|---------|
+| 1 | info | Un vieil air russe… devenu la musique d'un célèbre jeu vidéo de briques ! 🧱 | Voici Korobeïniki, une vieille chanson russe. Tu la connais sûrement : c'est devenu la musique d'un célèbre jeu vidéo où des briques tombent ! | keys `SIDE_HANDS` |
+| 2 | info | Pouce gauche sur Do. Main droite : glisse d'une touche, **pouce sur Ré** ! | Nouvelle installation ! Ton pouce gauche garde le Do du milieu. Ta main droite glisse d'une touche vers la droite : le pouce sur Ré. Tes deux mains sont côte à côte ! | keys `SIDE_HANDS` |
+| 3 | sequence | La Si Do à gauche, Ré Mi à droite… et retour ! | On essaie : La, Si, Do avec la main gauche, Ré, Mi avec la main droite. Puis on redescend. | `A3-g3 B3-g2 C4-g1 D4-1 E4-2 D4-1 C4-g1 B3-g2 A3-g3:2` |
+| 4 | sequence (song) | Le début : Mi à droite, puis Si Do à gauche… | Le début de l'air. Il commence sur Mi, avec le doigt deux de la main droite. Écoute d'abord ! | `KORO_A1` (12) · title « Korobeïniki » |
+| 5 | sequence (song) | La fin de la phrase : elle finit sur La, deux fois. | La fin de la phrase. Elle finit sur La, deux fois, avec le doigt trois de la main gauche. | `KORO_A2` (7) |
+| 6 | sequence (song) | Toute la 1re partie ! 🧱 | Et maintenant, toute la première partie ! | `KORO_A` (19) |
+
+`doneText` : « Les briques tombent en musique ! 🧱 »
+
+#### Leçon 15 — Korobeïniki en entier 🕹️
+Clavier : `SIDE_RANGE`. Mains côte à côte. *La 2e partie monte jusqu'au La4 (Fa-3, Sol-4, La-5 de la main droite), sans bouger les mains.*
+
+| # | Type | Texte affiché | Texte parlé | Détails |
+|---|------|---------------|-------------|---------|
+| 1 | info | La 2e partie monte plus haut : Fa, Sol, **La** avec les doigts 3, 4, 5 ! | La deuxième partie monte plus haut. Garde tes mains côte à côte : Fa, Sol et La, avec les doigts trois, quatre et cinq de la main droite. | keys `SIDE_ALL` |
+| 2 | sequence (song) | D'abord la 1re partie. Tu la connais ! | D'abord, la première partie. Tu la connais déjà ! | `KORO_A` (19) · title « Korobeïniki » |
+| 3 | sequence (song) | Ré, Fa, **La**… puis ça redescend ! | La deuxième partie : Ré, Fa, La, tout en haut avec le petit doigt, puis ça redescend. Écoute d'abord ! | `KORO_B1` (10) |
+| 4 | sequence (song) | La fin ressemble à la 1re partie ! | La fin ressemble beaucoup à la fin de la première partie : Si, Si, Do, Ré, Mi, Do, La, La. | `KORO_B2` (8) |
+| 5 | sequence (song) | Toute la 2e partie ! | Toute la deuxième partie, à la suite. | `KORO_B` (18) |
+| 6 | sequence (song) | Tout Korobeïniki ! 🕹️ | Et maintenant, tout l'air, du début à la fin ! | `KORO_A + ' ' + KORO_B` (37) |
+
+`doneText` : « Tu joues tout l'air des briques ! 🕹️ »
+
+#### Leçon 16 — Jingle Bells 🛷
+Clavier : Do4–Mi5 (téléphone Do4–Ré5). **Inchangée** par rapport à la 1re version (déjà codée). Position de Sol (pouce Sol4 … petit doigt Ré5). Paroles anglaises d'origine.
+
+| # | Type | Texte affiché | Texte parlé | Détails |
+|---|------|---------------|-------------|---------|
+| 1 | info | Déplace ta main droite : pouce sur **Sol**. C'est la **position de Sol** ! | Nouvelle position ! Déplace ta main droite : le pouce sur le Sol juste au-dessus du Do du milieu, le petit doigt sur Ré. C'est la position de Sol. | keys `POSITION_SOL` |
+| 2 | sequence | Sol La Si Do Ré… et retour ! | Monte, Sol, La, Si, Do, Ré, et redescends. | `G4-1 A4-2 B4-3 C5-4 D5-5 C5-4 B4-3 A4-2 G4-1:2` |
+| 3 | sequence (song) | Jingle Bells ! Presque tout sur **Si**, doigt 3. | Tu la connais sûrement : Jingle Bells, c'est l'air de Vive le vent ! Presque tout se joue sur Si, avec le doigt trois. Écoute d'abord ! | `JB_1` (11) · lyrics `JB_1_LY` · title « Jingle Bells » |
+| 4 | sequence (song) | La suite : le Do avec le doigt 4. | La suite. Le Do se joue avec le doigt quatre. | `JB_2` (15) · lyrics `JB_2_LY` |
+| 5 | sequence (song) | La fin est différente : elle finit sur Sol ! | La fin du refrain est un peu différente : elle finit sur Sol, avec le pouce. | `JB_3` (14) · lyrics `JB_3_LY` |
+| 6 | sequence (song) | La deuxième moitié : elle finit sur Sol ! | La deuxième moitié du refrain, jusqu'au Sol final. | `JB_1 + ' ' + JB_3` (25) · lyrics `JB_1_LY + '\|' + JB_3_LY` |
+| 7 | sequence (song) | Tout le refrain ! 🛷🔔 | Et maintenant, tout le refrain ! | `[JB_1, JB_2, JB_1, JB_3].join(' ')` (51) · lyrics `[JB_1_LY, JB_2_LY, JB_1_LY, JB_3_LY].join('\|')` |
+
+`doneText` : « Jingle Bells ! Tu connais la position de Sol ! 🛷 »
+
+#### Leçon 17 — La Lettre à Élise 💌
+Clavier : `{ from: 'C4', to: 'G5', phone: { from: 'E4', to: 'E5' } }` (8 blanches). *Première touche noire dans une mélodie : le Ré♯5. Position de La : pouce La4, 2 Si4, 3 Do5, 4 Ré5 **ou** Ré♯5, 5 Mi5 (doigté réel de Beethoven : Mi-5 Ré♯-4 Mi-5 Ré♯-4 Mi-5 Si-2 Ré-4 Do-3 La-1). La réponse « Mi » grave est jouée par le **pouce gauche** (Mi4), comme le Sol grave de L9.*
+
+| # | Type | Texte affiché | Texte parlé | Détails |
+|---|------|---------------|-------------|---------|
+| 1 | info | Ta 1re touche noire en musique : le **Ré♯**, entre Ré et Mi ! | Voici ta première touche noire en musique : le Ré dièse. Dièse veut dire un tout petit peu plus haut. C'est la touche noire juste à droite du Ré, entre Ré et Mi. | keys `D5 D#5 E5`, groups `"2"` |
+| 2 | find | Joue un Ré♯ ! | Joue un Ré dièse : la deuxième touche noire du groupe de deux. | accept `["D#"]`, count 3, keys `D#5-4` ; hint « La 2e touche noire du groupe de 2. » |
+| 3 | info | Pouce droit sur **La**, petit doigt sur Mi. Le doigt 4 va sur le Ré♯. | Une musique très célèbre de Beethoven : la Lettre à Élise ! Pose ton pouce droit sur le La au-dessus du Do du milieu, le petit doigt sur Mi. Le doigt quatre se pose sur la touche noire, Ré dièse. | keys `POSITION_LA` |
+| 4 | sequence (song) | Mi, Ré♯, Mi, Ré♯, Mi : doigts 5 et 4, ça se balance ! | Le début se balance : Mi, Ré dièse, Mi, Ré dièse, Mi. Doigt cinq, doigt quatre, doigt cinq… Écoute d'abord ! | `ELISE_BALANCE` (5) · title « La Lettre à Élise » |
+| 5 | sequence (song) | Puis ça descend : Si, Ré, Do, **La** ! | Après le balancement, ça descend : Si, Ré, Do, et La avec le pouce. Le doigt quatre revient sur la touche blanche, Ré. | `ELISE_M` (9) |
+| 6 | info | Le pouce **gauche** sur le Mi du bas : il répond ! | Maintenant, la réponse. Pose le pouce de ta main gauche sur le Mi, plus bas, à gauche de ta main droite. Il répond à la main droite ! | keys `E4-g1 A4-1 B4-2` ; illus `leftThumb` |
+| 7 | sequence (song) | La mélodie, puis la réponse : Mi à gauche, La Si à droite. | La mélodie, puis la réponse : Mi avec le pouce gauche, puis La et Si avec la main droite. | `ELISE_M + ' ' + ELISE_R1` (12) |
+| 8 | sequence (song) | La fin : après la réponse, Mi… Do, Si, La ! | La fin du thème : la mélodie, la réponse, puis encore Mi avec le pouce gauche, et Do, Si, La pour finir. | `[ELISE_M, ELISE_R1, ELISE_R2].join(' ')` (16) |
+| 9 | sequence (song) | Toute la Lettre à Élise ! 💌 | Et maintenant, tout le thème, deux fois la mélodie ! | `ELISE_ALL` (28) |
+
+`doneText` : « Tu joues la Lettre à Élise de Beethoven ! 💌 »
+
+#### Leçon 18 — Le roi de la montagne 👹
+Clavier : `SIDE_RANGE` (téléphone Sol3–La4). Mains côte à côte (comme L14–L15). *Grand final : Dans l'antre du roi de la montagne (Grieg, Peer Gynt), 8 premières mesures en La mineur. Deux touches noires : Ré♯4 (doigt 2 droit, qui glisse de Mi vers la touche noire) et La♯3 (doigt 2 gauche, qui glisse de Si vers la touche noire). Le vrai morceau accélère sans arrêt : dernière étape = même suite, démo à tempo 144.*
+
+| # | Type | Texte affiché | Texte parlé | Détails |
+|---|------|---------------|-------------|---------|
+| 1 | info | Le grand final : **Dans l'antre du roi de la montagne** ! 👹 | Le grand final ! Une musique de Grieg : Dans l'antre du roi de la montagne. Des trolls avancent sur la pointe des pieds, puis de plus en plus vite ! Mains côte à côte, comme pour l'air des briques : pouce gauche sur Do, pouce droit sur Ré. | keys `SIDE_HANDS` |
+| 2 | sequence (song) | Les trolls avancent : La Si Do à gauche, Ré Mi à droite. | Les trolls avancent : La, Si, Do avec la main gauche, Ré, Mi avec la main droite, puis Do, Mi. Écoute d'abord ! | `TROLL_1` (7) · title « Le roi de la montagne » |
+| 3 | info | Deux touches noires : **Ré♯** (doigt 2 droit) et **La♯** (doigt 2 gauche). | Deux touches noires arrivent. Le Ré dièse, tu le connais : avec le doigt deux de la main droite. Et le La dièse, la touche noire entre La et Si, avec le doigt deux de la main gauche. | keys `A#3-g2 D#4-2` |
+| 4 | find | Joue un La♯, doigt 2 gauche. | Joue un La dièse, avec le doigt deux de la main gauche. C'est la touche noire entre La et Si. | accept `["A#"]`, count 3, keys `A#3-g2` ; hint « La 3e touche noire du groupe de 3, entre La et Si. » |
+| 5 | sequence (song) | Ça se faufile sur les touches noires ! | Maintenant, ça se faufile sur les touches noires : Ré dièse, Si, Ré dièse, puis Ré, La dièse, Ré. | `TROLL_2` (6) |
+| 6 | sequence (song) | Toute la 1re partie ! | Toute la première partie, à la suite. | `TROLL_A` (13) |
+| 7 | sequence (song) | La 2e partie monte jusqu'au **La**, petit doigt ! | La deuxième partie commence pareil, puis monte jusqu'au La, tout en haut, avec le petit doigt. Elle finit sur Sol. | `TROLL_B` (13) |
+| 8 | sequence (song) | Tout le morceau ! 👹 | Et maintenant, tout le morceau ! | `TROLL_ALL` (26) |
+| 9 | sequence (song) | Encore, **plus vite** ! Comme les trolls ! 🔥 | Dans la vraie musique, ça va de plus en plus vite. Écoute la démo rapide, et joue aussi vite que tu peux ! | `TROLL_ALL` (26) · tempo 144 |
+
+`doneText` : « Tu as échappé au roi de la montagne ! 👹 »
+
+### 10.3 Ce qui change dans l'appli (hors `curriculum.js`)
+
+Inchangé par rapport à la 1re version du §10, sauf **f)**, **g)** (déjà en partie codé dans la copie de travail : on garde).
+
+**a) Niveaux dans les données** — nouveau champ de programme (les leçons ne bougent pas) :
+```js
+grand: {
+  id: 'grand', title: 'Niveau 1', tempo: 96,   // title conservé (compatibilité)
+  levels: [
+    { num: 1, title: 'Niveau 1', subtitle: 'La main droite', emoji: '🖐️', first: 'l01' },
+    { num: 2, title: 'Niveau 2', subtitle: 'Les deux mains',  emoji: '🙌', first: 'l10' }
+  ],
+  lessons: [ /* l01 … l09 inchangées, puis l10 … l18 */ ]
+}
+```
+Le niveau d'une leçon = le dernier niveau dont `first` est à un index ≤ celui de la leçon. « Dernière leçon d'un niveau » = la leçon juste avant le `first` du niveau suivant, ou la dernière du tableau. Si `levels` est absent : comportement actuel.
+
+**b) Carte (E3) — bandeau de niveau.** Avant la 1re leçon de chaque niveau, une ligne « bandeau » (pas une pastille) :
+```
+ Téléphone                               Tablette (5 colonnes)
+ ┌────────────────────────┐              ┌──────────────────────────────────────────────┐
+ │ 🖐️ Niveau 1 · La main droite │        │        🖐️ Niveau 1 · La main droite           │
+ │   (1) … (9) ⭐⭐⭐        │              │  (1) ── (2) ── (3) ── (4) ── (5)              │
+ │      │                 │              │  (9) ── (8) ── (7) ── (6)                     │
+ │ ╭────────────────────╮ │              │  ╭──────────────────────────────────────────╮ │
+ │ │ 🙌 Niveau 2        │ │              │  │ 🙌 Niveau 2 · Les deux mains   Nouveau ! │ │
+ │ │  Les deux mains    │ │              │  ╰──────────────────────────────────────────╯ │
+ │ ╰────────────────────╯ │              │  (10) ── (11) ── (12) ── (13) ── (14)         │
+ │      │                 │              │  (18) ── (17) ── (16) ── (15)                 │
+ │ ╔═(10) La main gauche═╗│              └──────────────────────────────────────────────┘
+ └────────────────────────┘
+```
+- Bandeau : pleine largeur du chemin moins 32 px, hauteur 64 px (téléphone) / 56 px (tablette), coins 28 px, fond `--surface` avec bordure 2 px `--primary`, texte 20 px gras « {emoji} {title} », sous-titre 16 px `--soft` « {subtitle} » (sur une seule ligne « · » en tablette). Rôle `heading` (`<h2>`), pas cliquable.
+- **Chaque niveau commence sur une nouvelle rangée** (tablette : le serpentin repart de la colonne de gauche ; le numéro de rangée est compté *dans* le niveau).
+- La ligne qui relie `l09` à `l10` passe **derrière** le bandeau.
+- Niveau verrouillé : bandeau grisé, emoji remplacé par 🔒, sous-titre « Termine le Niveau 1 pour l'ouvrir ».
+- Pastille « **Nouveau !** » sur le bandeau d'un niveau ouvert dont aucune leçon n'a encore d'étoile.
+- Défilement automatique vers la leçon courante comme avant.
+
+**c) Écran Bravo (E5).**
+- Fin de `l09` : titre `bravo.levelDone` (« Tu as fini le Niveau 1 ! 🏆 ») ; ligne `bravo.levelUnlocked` si le niveau suivant vient d'être débloqué ; bouton principal `bravo.nextLevel` (« Niveau 2 ▶ ») qui lance `l10`.
+- Fin de `l18` : « Tu as fini le Niveau 2 ! 🏆 », pas de bouton suivant, ligne `bravo.moreSoon`.
+
+**d) Consigne sous les bulles (E4)** :
+- main gauche, doigt 1 → `lesson.playLeftThumb` (inchangé) ;
+- main gauche, doigt 2–5 → `lesson.playLeftFinger` « Joue le {note} avec le doigt {finger} **gauche** » ;
+- main droite, dans une étape dont la suite contient **aussi** des notes de main gauche → `lesson.playRightFinger` « … doigt {finger} **droit** » ;
+- sinon → `lesson.playFinger` (Niveau 1 identique).
+Bulles de main gauche : petit liseré pointillé sous le doigt.
+
+**e) Illustration `leftHand`** (`js/illus.js`) : `fingerNumbers` en miroir, chiffres à l'endroit, mot « gauche » sous la paume. `leftThumb` (existant, L9) est réutilisée en l17/6.
+
+**f) Textes (`js/strings.js`)** — `hint.F#` **remplacé** (plus aucun Fa♯ au Niveau 2) par :
+```js
+'map.levelLocked': 'Termine le {prev} pour l\'ouvrir',
+'map.levelNew': 'Nouveau !',
+'bravo.levelUnlocked': 'Le {level} est ouvert : {subtitle} {emoji}',
+'bravo.nextLevel': '{level} ▶',
+'bravo.moreSoon': 'D\'autres leçons arrivent bientôt ! 🎹',
+'lesson.playLeftFinger': 'Joue le {note} avec le doigt {finger} gauche',
+'lesson.playRightFinger': 'Joue le {note} avec le doigt {finger} droit',
+'hint.D#': 'Le Ré♯ est la touche noire entre Ré et Mi.',
+'hint.A#': 'Le La♯ est la touche noire entre La et Si.',
+```
+(Aide par note = `'hint.' + PP.NOTES[pc].en`. Sans ces clés, une erreur sur Ré♯/La♯ en séquence afficherait une clé brute. On peut garder `hint.F#` en plus, inoffensif.)
+
+**g) Tests (`tests/curriculum.test.js`)** :
+- `cur.lessons.length === 18` ; ids `l01`…`l18` dans l'ordre ; `num` = index + 1 ; titres l10–l18 comme au §10.1.
+- `levels` : `first` existants, dans l'ordre ; `first` du niveau 2 = `l10`.
+- Plage téléphone de **chaque** leçon ≤ 9 blanches ; toutes les notes et `keys` du Niveau 2 dedans.
+- Longueurs : `l10/6` 8, `l10/7` 16, `l11/2` 16, `l11/3` 9, `l11/4` 7, `l11/5` 16, `l11/6` 32, `l12/7` 9, `l13/7` 25, `l14/3` 9, `l14/4` 12, `l14/5` 7, `l14/6` 19, `l15/3` 10, `l15/4` 8, `l15/5` 18, `l15/6` 37, `l16/6` 25, `l16/7` 51, `l17/4` 5, `l17/5` 9, `l17/7` 12, `l17/8` 16, `l17/9` 28, `l18/2` 7, `l18/5` 6, `l18/6` 13, `l18/7` 13, `l18/8` 26, `l18/9` 26.
+- Mélodies (classes de hauteur, §10.4) : au moins `l11/6`, `l13/7`, `l15/6`, `l16/7`, `l17/9`, `l18/8`.
+- `l17/2` accepte `D#` ; `l18/4` accepte `A#` ; en l17 tout `D#` a le doigt 4 (main droite) ; en l18 tout `D#` a le doigt 2 droit et tout `A#` le doigt `g2`.
+- `lyrics` : quand présent, même nombre d'éléments que `seq` (l10/6, l10/7, l11/2, l11/4, l13/*, l16/*).
+- `l18/9.tempo === 144`.
+- Plus aucune chanson française traditionnelle au Niveau 2 : aucun `title` de l10–l18 parmi « Au clair de la lune », « Frère Jacques », « Ah ! vous dirai-je maman », « Ode à la joie ».
+
+**h) Version** : `?v=3` sur tous les `<link>`/`<script>` de `index.html` (déjà fait dans la copie de travail).
+
+### 10.4 Mélodies écrites note à note
+
+(Notes en solfège ; ₃ = octave 3 ; durées entre parenthèses quand ≠ 1.)
+
+| Morceau | Notes | Vérification |
+|---------|-------|--------------|
+| **When the Saints Go Marching In** (L10–L11), en Do, MG Do3–Sol3 | Do Mi Fa Sol(4) · Do Mi Fa Sol(4) · Do Mi Fa Sol(2) Mi(2) Do(2) Mi(2) Ré(4) · Mi(2) Mi Ré Do(3) Do Mi(2) Sol(2) Sol Fa(3) · Mi Fa Sol(2) Mi(2) Do(2) Ré(2) Do(4) | ✅ Version standard en Do (« Oh when the saints / oh when the saints / oh when the saints go marching in / oh Lord I want to be in that number / when the saints go marching in ») ; 4+4+8+9+7 = **32**. Uniquement Do Ré Mi Fa Sol → position de Do gauche : Do g5, Ré g4, Mi g3, Fa g2, Sol g1. Paroles seulement sur les lignes 1, 2, 3 et 5 (syllabes = notes : 4, 4, 8, 7) ; ligne 4 sans paroles (10 syllabes pour 9 notes selon les éditions). |
+| **Joyeux anniversaire** (L13), en Do | Sol₃ Sol₃ La₃ Sol₃ Do Si₃(2) · Sol₃ Sol₃ La₃ Sol₃ Ré Do(2) · Sol₃ Sol₃ Sol Mi Do Si₃ La₃(2) · Fa Fa Mi Do Ré Do(2) | ✅ inchangé (25). |
+| **Korobeïniki** (L14–L15), en La mineur | A : Mi Si₃ Do Ré Do Si₃ La₃ La₃ Do Mi Ré Do · Si₃ Do Ré Mi Do La₃ La₃(2) · B : Ré Fa La Sol Fa Mi Do Mi Ré Do · Si₃ Si₃ Do Ré Mi Do La₃ La₃(2) | ✅ Air traditionnel dans sa forme connue (A = « E B C D C B A A C E D C B C D E C A A », B = « D F A G F E C E D C B B C D E C A A » en notation anglaise) ; 19 + 18 = **37**. Vérifié note à note et mesure par mesure (4 temps chacune). Rythme : noire / 2 croches ; dans l'original, B commence par un demi-soupir puis Ré noire + Fa croche : ici le demi-soupir est absorbé dans un Ré pointé (le modèle n'a pas de silence ; démo seulement). MG : La₃ g3, Si₃ g2, Do g1 ; MD : Ré 1, Mi 2, Fa 3, Sol 4, La 5. Aucune touche noire. |
+| **Jingle Bells** (L16), refrain en Sol | inchangé | ✅ (51). |
+| **La Lettre à Élise** (L17), La mineur, octave réelle (Mi5) | M = Mi Ré♯ Mi Ré♯ Mi Si₄ Ré Do La₄ · R1 = Mi₄ La₄ Si₄ · M · R1 · R2 = Mi₄ Do Si₄ La₄ | ✅ Thème original = M · Do₄ Mi₄ La₄ Si₄ · Mi₄ Sol♯₄ Si₄ Do₅ · M · Do₄ Mi₄ La₄ Si₄ · Mi₄ Do₅ Si₄ La₄. Simplifié : Do₄ enlevé de la réponse (sinon Do4–Mi5 = 10 blanches) et phrase « Mi Sol♯ Si Do » omise (une seule touche noire nouvelle par leçon). Le motif M, la partie reconnaissable, est **intact** avec son doigté d'origine (5-4-5-4-5-2-4-3-1). 9+3+9+3+4 = **28**. |
+| **Dans l'antre du roi de la montagne** (L18), La mineur (original en Si mineur, transposé d'un ton vers le bas) | A = La₃ Si₃ Do Ré · Mi Do Mi(2) · Ré♯ Si₃ Ré♯(2) · Ré La♯₃ Ré(2) · B = La₃ Si₃ Do Ré · Mi Do Mi La · Sol Mi Do Mi · Sol(2) | ✅ Original (Si mineur) : Si Do♯ Ré Mi · Fa♯ Ré Fa♯ · Mi♯ Do♯ Mi♯ · Mi Do Mi · Si Do♯ Ré Mi · Fa♯ Ré Fa♯ Si · La Fa♯ Ré Fa♯ · La — chaque note −2 demi-tons (Mi♯→Ré♯, Do→La♯). 13 + 13 = **26**. MG : La₃ g3, La♯₃ g2, Si₃ g2, Do g1 ; MD : Ré 1, Ré♯ 2, Mi 2, Sol 4, La 5. |
+
+Doigtés : tous dans la position annoncée (un doigt par touche ; seuls les doigts qui glissent sur une touche noire voisine : 4 sur Ré♯ en L17, 2 sur Ré♯ / g2 sur La♯ en L18). Changements de main : relais au Do du milieu (L12–L13), mains côte à côte (L14–L15, L18), pouce gauche sur Mi4 (L17). **Aucun passage de pouce, aucun déplacement de main en cours de morceau.**
+
+### 10.5 Points à vérifier sur le vrai piano
+
+- **Notes graves de la main gauche (Do3–Sol3, 131–196 Hz, L10–L11)** : surveiller avec `?debug=1` les erreurs de quinte (§5.3). Une erreur d'octave est sans conséquence ; une erreur de quinte serait comptée fausse → si fréquent, baisser le seuil YIN sous 200 Hz.
+- **L14–L15 et L18 alternent très vite les mains** (La₃/Si₃/Do à gauche, Ré/Mi à droite, souvent une note sur deux) : c'est le cœur de l'exercice ; en mode attente, aucun souci de rythme.
+- **L17 : Mi5–Ré♯5 répétés** (659/622 Hz, un demi-ton) : bien au-dessus de la zone délicate ; la répétition rapide de deux notes voisines est gérée par l'attente note par note (il faut juste que chaque attaque soit détectée ; si le fils enchaîne trop vite, le micro peut rater une attaque → surveiller).
+- **L16, L15 et L17 restent longues** (51, 37, 28 notes en dernière étape). Si le fils se lasse, scinder une étape (les ids ne bougent pas, on ajoute des étapes).
+- **Reconnaissance** : faire écouter au fils la démo de L14/6, L17/5 et L18/8 : s'il reconnaît « le jeu de briques », « Beethoven » et « les trolls », c'est gagné.
+
+### Révisé : musiques plus modernes
+
+Le parent a jugé les comptines françaises « ringardes » : la 1re version du §10 (Au clair de la lune, Frère Jacques, Ode à la joie à gauche, Ah ! vous dirai-je maman, Au clair de la lune complet, Frère Jacques/Ode en Ré avec Fa♯) est **remplacée** par When the Saints (L10–L11), Korobeïniki (L14–L15), La Lettre à Élise (L17) et Dans l'antre du roi de la montagne (L18). *Joyeux anniversaire* (utile en famille, avancé de L15 à L13), *Jingle Bells* (L16) et les exercices de L12 sont gardés tels quels. Même squelette : main gauche seule → deux mains chacune leur tour → nouvelle installation des mains → position de Sol → premières touches noires (Ré♯, puis Ré♯ + La♯). Tout est du domaine public ; aucun nom de jeu vidéo n'est cité.
+
+### Revue du critique (niveau 2, playlist)
+
+**Mélodies comparées note à note au vrai thème (après transposition) :**
+- *When the Saints* (Do, MG) : Do Mi Fa Sol ×2, Do Mi Fa Sol Mi Do Mi Ré, Mi Mi Ré Do Do Mi Sol Sol Fa, Mi Fa Sol Mi Do Ré Do = version standard. ✅ 32 notes, 5 notes Do–Sol, doigté MG correct (g5 Do … g1 Sol), paroles 4/4/8/7 = notes. Ligne 4 sans paroles : bon choix (éditions divergentes).
+- *Joyeux anniversaire* : ✅ exact (3/4, Sol pointé-double croche). Domaine public en Europe (Mildred Hill † 1916, Patty Hill † 1946).
+- *Korobeïniki* : ✅ A (19) et B (18) identiques à l'air connu, durées = 4 temps par mesure. Tout tient dans « mains côte à côte » sans déplacement. Deux pouces sur touches voisines (Do4 / Ré4) : serré mais faisable pour un enfant de 9 ans (les pouces se touchent) — à observer.
+- *Jingle Bells* (Sol) : ✅ refrain exact, paroles d'origine alignées (11/15/14).
+- *Lettre à Élise* : ✅ motif M exact avec le doigté réel 5-4-5-4-5-2-4-3-1 ; réponses Mi La Si / Mi Do Si La exactes à la note grave Do₄ près. Simplifications acceptables (reconnaissable dès les 5 premières notes). Omission de « Mi Sol♯ Si Do » : assumée (une seule nouvelle touche noire).
+- *Roi de la montagne* : ✅ Si mineur → La mineur (−2 demi-tons) vérifié note par note : Fa♯ Ré Fa♯ → Mi Do Mi, Mi♯ Do♯ Mi♯ → Ré♯ Si Ré♯, Mi Do Mi → Ré La♯ Ré, Si Fa♯ … La → La Mi … Sol. 26 notes.
+
+**Domaine public :** tout est OK (Beethoven † 1827, Grieg † 1907, Pierpont † 1893, airs traditionnels). Précision ajoutée au §10.0.7 pour *Saints* et *Korobeïniki* (l'air seulement, jamais un arrangement de jeu/disque). Aucun nom de jeu vidéo : ✅. Citer « Vive le vent » en L16 n'est qu'une référence de titre (les paroles françaises de Francis Blanche, protégées, ne sont pas utilisées) : OK.
+
+**Doigtés / plages :** chaque note est sous un doigt de la position annoncée ; seuls glissements sur touche noire voisine (4→Ré♯ en L17, 2→Ré♯ et g2→La♯ en L18). Numérotation MG correcte partout. Plages téléphone recalculées : 8, 8, 9, 9, 9, 9, 9, 8, 9 blanches, toutes les notes et `keys` dedans. ✅
+**Longueurs :** tous les totaux du §10.3g recomptés : ✅.
+**Niveau 1 :** `l01`–`l09` intacts dans la copie de travail (seul changement : ajout de `levels` au niveau du programme). ✅
+**`?v=3`** déjà en place dans `index.html`. ✅
+
+**Remarques (non bloquantes) :**
+1. L17 installe une nouvelle position (La) sans séquence d'échauffement (9 étapes, plafond atteint) : acceptable car L17/4 n'utilise que les doigts 5 et 4 ; si le fils bute sur L17/5, ajouter une étape « La Si Do Ré Mi et retour ».
+2. Le Ré♯ change de doigt entre L17 (doigt 4) et L18 (doigt 2) : le `say` de L18/3 le dit explicitement ✅ ; les bulles le montrent.
+3. L18/9 « joue aussi vite que tu peux » : en alternance rapide Ré♯4/Si3 (311/247 Hz) le micro peut rater une attaque → surveiller avec `?debug=1`.
+4. La copie de travail contient encore **l'ancienne** version Niveau 2 (Au clair de la lune, Frère Jacques, Fa♯ : `POSITION_RE`, `ACL_RE`, `FJ_RE`, `ODE_RE_*`…) : le développeur doit la remplacer entièrement par les constantes du §10.1 et supprimer les anciennes.

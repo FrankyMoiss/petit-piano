@@ -433,6 +433,27 @@
     return -1;
   }
 
+  /**
+   * Niveaux du programme (DESIGN §10.3a) : [{ level, start, end }] (indices de leçons inclus).
+   * Sans champ `levels` : un seul niveau, sans bandeau sur la carte (comportement d'origine).
+   */
+  function levelSegments() {
+    var cur = curriculum(), lessons = cur.lessons;
+    var levels = (cur.levels || []).map(function (lv) {
+      return { level: lv, start: lessons.findIndex(function (l) { return l.id === lv.first; }) };
+    }).filter(function (sg) { return sg.start >= 0; }).sort(function (a, b) { return a.start - b.start; });
+    if (!levels.length) return [{ level: { num: 1, title: cur.title }, start: 0, end: lessons.length - 1, plain: true }];
+    levels[0].start = 0;
+    levels.forEach(function (sg, k) { sg.end = k + 1 < levels.length ? levels[k + 1].start - 1 : lessons.length - 1; });
+    return levels;
+  }
+
+  function segmentOf(i) {
+    var segs = levelSegments();
+    for (var k = 0; k < segs.length; k++) if (i >= segs[k].start && i <= segs[k].end) return { seg: segs[k], next: segs[k + 1] || null, prev: segs[k - 1] || null };
+    return { seg: segs[0], next: null, prev: null };
+  }
+
   function starsText(n) {
     var s = '';
     for (var i = 0; i < 3; i++) s += i < n ? '⭐' : '<span class="star-empty">☆</span>';
@@ -443,20 +464,45 @@
   function renderMapPath(silent) {
     var lessons = curriculum().lessons;
     var path = $('map-path');
-    path.querySelectorAll('.node').forEach(function (n) { n.remove(); });
+    path.querySelectorAll('.node, .level-band').forEach(function (n) { n.remove(); });
     var W = path.clientWidth;
     var wide = W >= 640;
     var cols = wide ? 5 : 1;
     var nodeSize = wide ? 88 : 72;
     var rowH = nodeSize + 90;
+    var bandSpace = (wide ? 56 : 64) + 36;     // bandeau de niveau + marge
     var cur = currentLesson();
     var centers = [];
+    var y = 0;
 
-    lessons.forEach(function (lesson, i) {
-      var row = Math.floor(i / cols), col = i % cols;
-      if (row % 2 === 1) col = cols - 1 - col;          // serpentin
+    levelSegments().forEach(function (sg, k, segs) {
+      if (!sg.plain) {
+        var open = store.isUnlocked(lessons, sg.start);
+        var fresh = open && sg.level.num > 1;
+        for (var j = sg.start; j <= sg.end && fresh; j++) {
+          var p = store.lessonProgress(lessons[j].id);
+          if (p && p.stars) fresh = false;
+        }
+        var band = document.createElement('h2');
+        band.className = 'level-band' + (wide ? ' wide' : '') + (open ? '' : ' locked');
+        band.style.top = (y + bandSpace / 2) + 'px';
+        var sub = open || k === 0 ? sg.level.subtitle : t('map.levelLocked', { prev: segs[k - 1].level.title });
+        band.innerHTML = '<span class="band-title">' + (open ? sg.level.emoji : '🔒') + ' ' + escape(sg.level.title) + '</span>' +
+          '<span class="band-sub">' + escape(sub || '') + '</span>' +
+          (fresh ? '<span class="band-new">' + escape(t('map.levelNew')) + '</span>' : '');
+        path.appendChild(band);
+        y += bandSpace;
+      }
+      for (var i = sg.start; i <= sg.end; i++) addNode(i, i - sg.start, y);
+      y += Math.ceil((sg.end - sg.start + 1) / cols) * rowH;
+    });
+
+    function addNode(i, j, top) {
+      var lesson = lessons[i];
+      var row = Math.floor(j / cols), col = j % cols;
+      if (row % 2 === 1) col = cols - 1 - col;          // serpentin (compté dans le niveau)
       var cx = wide ? (col + 0.5) * W / cols : W * (i % 2 ? 0.66 : 0.34);
-      var cy = row * rowH + nodeSize / 2 + 24;
+      var cy = top + row * rowH + nodeSize / 2 + 24;
       centers.push([cx, cy]);
 
       var unlocked = store.isUnlocked(lessons, i);
@@ -481,10 +527,9 @@
         }
       });
       path.appendChild(node);
-    });
+    }
 
-    var rows = Math.ceil(lessons.length / cols);
-    var H = rows * rowH + 20;
+    var H = y + 20;
     path.style.height = H + 'px';
     var svg = $('map-lines');
     svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
@@ -645,14 +690,23 @@
     var wasUnlocked = i + 1 < lessons.length && store.isUnlocked(lessons, i + 1);
     var rec = store.recordLesson(lesson.id, stars, result.errors);
     var last = i === lessons.length - 1;
+    var lv = segmentOf(i);
+    var levelEnd = i === lv.seg.end;                       // dernière leçon de son niveau (DESIGN §10.3c)
+    var unlockedNow = !last && !wasUnlocked && store.isUnlocked(lessons, i + 1);
 
     show('bravo');
-    $('bravo-title').textContent = last ? t('bravo.levelDone', { level: curriculum().title }) : t('bravo.title', { prenom: profile().name });
+    $('bravo-title').textContent = levelEnd ? t('bravo.levelDone', { level: lv.seg.level.title }) : t('bravo.title', { prenom: profile().name });
     $('bravo-message').textContent = t('bravo.stars' + stars);
     $('bravo-record').hidden = !rec.record;
     $('bravo-done').textContent = PP.fill(lesson.doneText, { prenom: profile().name });
-    $('bravo-unlocked').textContent = !last && !wasUnlocked ? t('bravo.unlocked', { title: lessons[i + 1].title }) : '';
+    var unlockedText = '';
+    if (last) { if (!lv.seg.plain) unlockedText = t('bravo.moreSoon'); }
+    else if (levelEnd && lv.next) {
+      if (unlockedNow) unlockedText = t('bravo.levelUnlocked', { level: lv.next.level.title, subtitle: lv.next.level.subtitle, emoji: lv.next.level.emoji });
+    } else if (unlockedNow) unlockedText = t('bravo.unlocked', { title: lessons[i + 1].title });
+    $('bravo-unlocked').textContent = unlockedText;
     $('bravo-next').hidden = last;
+    $('bravo-next').textContent = levelEnd && lv.next ? t('bravo.nextLevel', { level: lv.next.level.title }) : t('bravo.next');
 
     var box = $('bravo-stars');
     box.innerHTML = '';

@@ -61,6 +61,8 @@
       'map.days': '{n} jours',
       'map.play': 'Jouer ▶',
       'map.locked': 'Termine la leçon d\'avant pour ouvrir celle-ci 🔒',
+      'map.levelLocked': 'Termine le {prev} pour l\'ouvrir',
+      'map.levelNew': 'Nouveau !',
       'map.allDone': 'Tu as tout fini ! Rejoue tes chansons préférées 🎶',
       'map.longPress': 'Appui long pour les parents',
       'map.settings': 'Coin des parents',
@@ -73,6 +75,8 @@
       'lesson.readAloud': 'Lire la consigne',
       'lesson.playFinger': 'Joue le {note} avec le doigt {finger}',
       'lesson.playLeftThumb': 'Joue le {note} avec le pouce gauche',
+      'lesson.playLeftFinger': 'Joue le {note} avec le doigt {finger} gauche',
+      'lesson.playRightFinger': 'Joue le {note} avec le doigt {finger} droit',
       'lesson.play': 'Joue le {note}',
       'lesson.youPlayed': 'Tu as joué {note}',
       'lesson.listenThis': 'Écoute… c\'est ce son-là !',
@@ -98,6 +102,9 @@
       'bravo.record': 'Nouveau record !',
       'bravo.unlocked': 'Nouvelle leçon débloquée : {title} 🔓',
       'bravo.levelDone': 'Tu as fini le {level} ! 🏆',
+      'bravo.levelUnlocked': 'Le {level} est ouvert : {subtitle} {emoji}',
+      'bravo.nextLevel': '{level} ▶',
+      'bravo.moreSoon': 'D\'autres leçons arrivent bientôt ! 🎹',
       'bravo.replay': 'Rejouer ↻',
       'bravo.next': 'Leçon suivante ▶',
       'bravo.map': 'Carte 🗺',
@@ -168,6 +175,8 @@
       'hint.G': 'Le Sol est juste à droite du Fa.',
       'hint.A': 'Le La est entre la 2e et la 3e noire du groupe de 3.',
       'hint.B': 'Le Si est juste avant le Do.',
+      'hint.D#': 'Le Ré♯ est la touche noire entre Ré et Mi.',
+      'hint.A#': 'Le La♯ est la touche noire entre La et Si.',
       'hint.black': 'Cherche parmi les touches noires.'
     }
   };
